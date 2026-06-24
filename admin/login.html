@@ -8,36 +8,34 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌚</text></svg>" />
 </head>
 <body>
+<div class="toast-wrap" id="toast-wrap"></div>
 
-<div class="toast-container" id="toast-container"></div>
-
-<div class="login-page">
+<div class="login-pg">
   <div class="login-card">
     <div class="login-logo">
-      <div class="login-logo-icon">⌚</div>
-      <div class="login-logo-text">DEMO WATCHES</div>
-      <div class="login-logo-sub">Admin Panel</div>
+      <div class="login-icon">⌚</div>
+      <div class="login-name">DEMO WATCHES</div>
+      <div class="login-sub2">Admin Panel</div>
     </div>
 
     <h2 class="login-title">تسجيل الدخول</h2>
-    <p class="login-sub">أدخل بياناتك للوصول إلى لوحة الإدارة</p>
+    <p class="login-desc">أدخل بياناتك للوصول إلى لوحة الإدارة</p>
 
-    <div class="login-error hidden" id="login-error">❌ اسم المستخدم أو كلمة المرور غير صحيحة</div>
+    <div class="login-err hidden" id="login-err">❌ اسم المستخدم أو كلمة المرور غير صحيحة</div>
 
-    <form id="login-form" onsubmit="handleLogin(event)">
-      <div class="form-group">
+    <form onsubmit="handleLogin(event)">
+      <div class="f-grp">
         <label>اسم المستخدم</label>
-        <input type="text" id="username" placeholder="admin" autocomplete="username" required />
+        <input type="text" id="uname" placeholder="admin" autocomplete="username" required />
       </div>
-      <div class="form-group">
+      <div class="f-grp">
         <label>كلمة المرور</label>
-        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required />
+        <input type="password" id="upass" placeholder="••••••••" autocomplete="current-password" required />
       </div>
       <button type="submit" class="login-btn" id="login-btn">🔐 دخول</button>
     </form>
 
     <div class="login-demo">
-      <strong>بيانات تجريبية:</strong><br/>
       المستخدم: <code>admin</code> &nbsp;|&nbsp; كلمة المرور: <code>watches2024</code>
     </div>
   </div>
@@ -46,37 +44,35 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase-config.js"></script>
 <script>
-  if (localStorage.getItem('dw_admin_auth') === 'true') {
-    window.location.href = 'index.html';
-  }
+  if (localStorage.getItem('dw_admin_auth') === 'true') location.href = 'index.html';
 
   async function handleLogin(e) {
     e.preventDefault();
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
-    const btn      = document.getElementById('login-btn');
-    const errEl    = document.getElementById('login-error');
+    const u   = document.getElementById('uname').value.trim();
+    const p   = document.getElementById('upass').value;
+    const btn = document.getElementById('login-btn');
+    const err = document.getElementById('login-err');
 
     btn.disabled = true; btn.textContent = '⏳ جارٍ التحقق...';
-    errEl.classList.add('hidden');
+    err.classList.add('hidden');
 
-    await new Promise(r => setTimeout(r, 500));
+    await new Promise(r => setTimeout(r, 450));
 
-    let valid = false;
+    let ok = false;
     if (supabaseClient) {
       try {
-        const { data } = await supabaseClient.from('admin_users').select('*').eq('username', username).single();
-        if (data && data.password_hash === password) valid = true;
+        const { data } = await supabaseClient.from('admin_users').select('*').eq('username', u).single();
+        if (data?.password_hash === p) ok = true;
       } catch (_) {}
     }
-    if (!valid && username === ADMIN_USERNAME && password === ADMIN_PASSWORD) valid = true;
+    if (!ok && u === ADMIN_USERNAME && p === ADMIN_PASSWORD) ok = true;
 
-    if (valid) {
+    if (ok) {
       localStorage.setItem('dw_admin_auth', 'true');
-      localStorage.setItem('dw_admin_user', username);
-      window.location.href = 'index.html';
+      localStorage.setItem('dw_admin_user', u);
+      location.href = 'index.html';
     } else {
-      errEl.classList.remove('hidden');
+      err.classList.remove('hidden');
       btn.disabled = false; btn.textContent = '🔐 دخول';
     }
   }
