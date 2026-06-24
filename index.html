@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo Watches — ساعات فاخرة</title>
+  <meta name="description" content="متجر ساعات فاخرة — اكتشف مجموعتنا الحصرية" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌚</text></svg>" />
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay">
+  <div class="loader-logo">⌚ Demo Watches</div>
+  <div class="loader-ring"></div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ── Header ─────────────────────────────────────────────── -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-icon">⌚</span>
+      <div>
+        <div class="logo-text">DEMO WATCHES</div>
+        <div class="logo-sub" data-ar="ساعات فاخرة" data-en="Luxury Timepieces">ساعات فاخرة</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a href="#home"       data-ar="الرئيسية"  data-en="Home">الرئيسية</a>
+      <a href="#categories" data-ar="التصنيفات" data-en="Categories">التصنيفات</a>
+      <a href="#products"   data-ar="المنتجات"  data-en="Products">المنتجات</a>
+      <a href="#newsletter" data-ar="تواصل"     data-en="Contact">تواصل</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="lang-toggle" id="lang-toggle" title="Switch Language">EN</button>
+      <button class="cart-btn" id="cart-toggle-btn">
+        <span>🛒</span>
+        <span data-ar="السلة" data-en="Cart">السلة</span>
+        <span class="cart-badge hidden" id="cart-badge">0</span>
+      </button>
+      <button class="menu-toggle" id="menu-toggle">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile Nav -->
+<div class="mobile-nav" id="mobile-nav">
+  <button class="mobile-nav-close" id="mobile-nav-close">✕</button>
+  <a href="#home"       data-ar="الرئيسية"  data-en="Home"       onclick="closeMobileNav()">الرئيسية</a>
+  <a href="#categories" data-ar="التصنيفات" data-en="Categories" onclick="closeMobileNav()">التصنيفات</a>
+  <a href="#products"   data-ar="المنتجات"  data-en="Products"   onclick="closeMobileNav()">المنتجات</a>
+  <a href="#newsletter" data-ar="تواصل"     data-en="Contact"    onclick="closeMobileNav()">تواصل</a>
+</div>
+
+<!-- ── Hero ───────────────────────────────────────────────── -->
+<section class="hero" id="home">
+  <div class="hero-bg"></div>
+  <div class="hero-decor"></div>
+
+  <div class="hero-content">
+    <div class="hero-tag" data-ar="✦ مجموعة 2024 الحصرية" data-en="✦ Exclusive 2024 Collection">✦ مجموعة 2024 الحصرية</div>
+    <h1 data-ar="الفخامة على <span class='text-gold'>معصمك</span>" data-en="Luxury on Your <span class='text-gold'>Wrist</span>">
+      الفخامة على <span class="text-gold">معصمك</span>
+    </h1>
+    <p data-ar="ساعات مُصممة لمن يُقدّر الجمال الحقيقي — حِرفية سويسرية، وذوق لا مثيل له"
+       data-en="Watches crafted for those who appreciate true beauty — Swiss craftsmanship, unmatched elegance">
+      ساعات مُصممة لمن يُقدّر الجمال الحقيقي — حِرفية سويسرية، وذوق لا مثيل له
+    </p>
+    <div class="hero-btns">
+      <a href="#products" class="btn btn-gold" data-ar="🛍 تسوق الآن" data-en="🛍 Shop Now">🛍 تسوق الآن</a>
+      <a href="#categories" class="btn btn-outline" style="color:white;border-color:rgba(255,255,255,.5)"
+         data-ar="تصفح التصنيفات" data-en="Browse Categories">تصفح التصنيفات</a>
+    </div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">500+</div>
+      <div class="stat-lbl" data-ar="عميل سعيد" data-en="Happy Clients">عميل سعيد</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">50+</div>
+      <div class="stat-lbl" data-ar="طراز حصري" data-en="Exclusive Styles">طراز حصري</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">5★</div>
+      <div class="stat-lbl" data-ar="تقييم العملاء" data-en="Customer Rating">تقييم العملاء</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Categories ─────────────────────────────────────────── -->
+<section class="categories container" id="categories">
+  <div class="text-center">
+    <h2 class="section-title" data-ar="تصنيفاتنا" data-en="Our Categories">تصنيفاتنا</h2>
+    <p class="section-subtitle" data-ar="اختر الأسلوب الذي يعبّر عنك" data-en="Choose the style that defines you">اختر الأسلوب الذي يعبّر عنك</p>
+    <div class="gold-line"></div>
+  </div>
+
+  <div class="cat-grid" style="margin-top:48px">
+    <div class="cat-card" onclick="filterByCategory('Men')">
+      <img src="https://images.unsplash.com/photo-1533139502658-0198f920d8e8?w=600&q=80" alt="Men" loading="lazy" />
+      <div class="cat-overlay">
+        <div class="cat-name" data-ar="للرجال" data-en="For Men">للرجال</div>
+        <div class="cat-count" data-ar="2 ساعات" data-en="2 Watches">2 ساعات</div>
+      </div>
+    </div>
+    <div class="cat-card" onclick="filterByCategory('Women')">
+      <img src="https://images.unsplash.com/photo-1548169874-53e85f753f1e?w=600&q=80" alt="Women" loading="lazy" />
+      <div class="cat-overlay">
+        <div class="cat-name" data-ar="للنساء" data-en="For Women">للنساء</div>
+        <div class="cat-count" data-ar="2 ساعات" data-en="2 Watches">2 ساعات</div>
+      </div>
+    </div>
+    <div class="cat-card" onclick="filterByCategory('Unisex')">
+      <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80" alt="Unisex" loading="lazy" />
+      <div class="cat-overlay">
+        <div class="cat-name" data-ar="للجنسين" data-en="Unisex">للجنسين</div>
+        <div class="cat-count" data-ar="1 ساعة" data-en="1 Watch">1 ساعة</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Products ────────────────────────────────────────────── -->
+<section class="products" id="products">
+  <div class="container">
+    <div class="text-center">
+      <h2 class="section-title" data-ar="مجموعتنا الفاخرة" data-en="Our Luxury Collection">مجموعتنا الفاخرة</h2>
+      <p class="section-subtitle" data-ar="كل ساعة قصة فريدة" data-en="Every watch tells a unique story">كل ساعة قصة فريدة</p>
+      <div class="gold-line"></div>
+    </div>
+
+    <div class="filter-bar" style="margin-top:32px">
+      <button class="filter-btn active" data-filter="all"    data-ar="الكل"    data-en="All">الكل</button>
+      <button class="filter-btn"        data-filter="Men"    data-ar="رجالي"   data-en="Men">رجالي</button>
+      <button class="filter-btn"        data-filter="Women"  data-ar="نسائي"   data-en="Women">نسائي</button>
+      <button class="filter-btn"        data-filter="Unisex" data-ar="للجنسين" data-en="Unisex">للجنسين</button>
+    </div>
+
+    <div class="products-grid" id="products-grid">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ── Newsletter ──────────────────────────────────────────── -->
+<section class="newsletter" id="newsletter">
+  <div class="container">
+    <h2 data-ar="ابقَ على تواصل" data-en="Stay Connected">ابقَ على تواصل</h2>
+    <p data-ar="اشترك ليصلك أحدث المجموعات والعروض الحصرية" data-en="Subscribe for the latest collections and exclusive offers">
+      اشترك ليصلك أحدث المجموعات والعروض الحصرية
+    </p>
+    <form class="newsletter-form" id="newsletter-form" onsubmit="handleNewsletter(event)">
+      <input type="email" placeholder="" id="newsletter-email" required />
+      <button type="submit" data-ar="اشترك" data-en="Subscribe">اشترك</button>
+    </form>
+  </div>
+</section>
+
+<!-- ── Footer ─────────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo">
+          <span class="logo-icon">⌚</span>
+          <div class="logo-text" style="color:var(--gold)">DEMO WATCHES</div>
+        </div>
+        <p data-ar="ساعات فاخرة مُصممة للأناقة والتميز. كل قطعة تحكي قصة جمال حقيقي."
+           data-en="Luxury watches designed for elegance and distinction. Every piece tells a story of true beauty.">
+          ساعات فاخرة مُصممة للأناقة والتميز. كل قطعة تحكي قصة جمال حقيقي.
+        </p>
+      </div>
+      <div class="footer-col">
+        <h4 data-ar="روابط سريعة" data-en="Quick Links">روابط سريعة</h4>
+        <ul>
+          <li><a href="#home"       data-ar="الرئيسية"  data-en="Home">الرئيسية</a></li>
+          <li><a href="#categories" data-ar="التصنيفات" data-en="Categories">التصنيفات</a></li>
+          <li><a href="#products"   data-ar="المنتجات"  data-en="Products">المنتجات</a></li>
+          <li><a href="admin/login.html" data-ar="لوحة الإدارة" data-en="Admin">لوحة الإدارة</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4 data-ar="تواصل معنا" data-en="Contact Us">تواصل معنا</h4>
+        <ul>
+          <li>📱 WhatsApp</li>
+          <li>📧 info@demowatches.com</li>
+          <li>🕐 <span data-ar="9 ص - 9 م" data-en="9AM - 9PM">9 ص - 9 م</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span data-ar="© 2024 Demo Watches. جميع الحقوق محفوظة." data-en="© 2024 Demo Watches. All rights reserved.">
+        © 2024 Demo Watches. جميع الحقوق محفوظة.
+      </span>
+      <span style="color:var(--gold)" data-ar="صُنع بـ ❤️ للأناقة" data-en="Made with ❤️ for elegance">صُنع بـ ❤️ للأناقة</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ── Cart Sidebar ────────────────────────────────────────── -->
+<div class="cart-overlay" id="cart-overlay" onclick="closeCart()"></div>
+<aside class="cart-sidebar" id="cart-sidebar">
+  <div class="cart-header">
+    <h3 data-ar="🛒 سلة التسوق" data-en="🛒 Shopping Cart">🛒 سلة التسوق</h3>
+    <button class="cart-close" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cart-items">
+    <div class="cart-empty">
+      <div class="cart-empty-icon">🛒</div>
+      <p data-ar="سلتك فارغة" data-en="Your cart is empty">سلتك فارغة</p>
+    </div>
+  </div>
+  <div class="cart-footer" id="cart-footer" style="display:none">
+    <div class="cart-total">
+      <span data-ar="الإجمالي" data-en="Total">الإجمالي</span>
+      <span id="cart-total-price">0 EGP</span>
+    </div>
+    <button class="checkout-btn" onclick="openCheckout()" data-ar="إتمام الشراء →" data-en="Checkout →">إتمام الشراء →</button>
+  </div>
+</aside>
+
+<!-- ── Checkout Modal ──────────────────────────────────────── -->
+<div class="modal-overlay" id="checkout-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 data-ar="🧾 إتمام الطلب" data-en="🧾 Complete Order">🧾 إتمام الطلب</h3>
+      <button class="modal-close" onclick="closeCheckout()">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Shipping -->
+      <h4 style="margin-bottom:16px;color:var(--green);font-family:'Playfair Display',serif"
+          data-ar="📦 معلومات الشحن" data-en="📦 Shipping Info">📦 معلومات الشحن</h4>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label data-ar="الاسم الكامل" data-en="Full Name">الاسم الكامل</label>
+          <input type="text" id="ship-name" placeholder="" required />
+        </div>
+        <div class="form-group">
+          <label data-ar="رقم الهاتف" data-en="Phone">رقم الهاتف</label>
+          <input type="tel" id="ship-phone" placeholder="" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label data-ar="الدولة" data-en="Country">الدولة</label>
+          <select id="ship-country">
+            <option value="Egypt" data-ar="مصر"         data-en="Egypt">مصر</option>
+            <option value="Saudi" data-ar="السعودية"    data-en="Saudi Arabia">السعودية</option>
+            <option value="UAE"   data-ar="الإمارات"    data-en="UAE">الإمارات</option>
+            <option value="Kuwait" data-ar="الكويت"     data-en="Kuwait">الكويت</option>
+            <option value="Other" data-ar="دولة أخرى"  data-en="Other">دولة أخرى</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label data-ar="المدينة" data-en="City">المدينة</label>
+          <input type="text" id="ship-city" placeholder="" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label data-ar="العنوان التفصيلي" data-en="Detailed Address">العنوان التفصيلي</label>
+        <input type="text" id="ship-address" placeholder="" required />
+      </div>
+
+      <!-- Coupon -->
+      <div class="form-group">
+        <label data-ar="كود الخصم (اختياري)" data-en="Discount Code (optional)">كود الخصم (اختياري)</label>
+        <div class="coupon-row">
+          <input type="text" id="coupon-input" placeholder="WELCOME10" />
+          <button class="apply-coupon-btn" onclick="applyCoupon()" data-ar="تطبيق" data-en="Apply">تطبيق</button>
+        </div>
+        <div class="coupon-result" id="coupon-result"></div>
+      </div>
+
+      <!-- Payment -->
+      <h4 style="margin-bottom:14px;color:var(--green);font-family:'Playfair Display',serif"
+          data-ar="💳 طريقة الدفع" data-en="💳 Payment Method">💳 طريقة الدفع</h4>
+      <div class="payment-methods">
+        <label class="payment-opt selected">
+          <input type="radio" name="payment" value="InstaPay" checked />
+          <div class="payment-icon">📲</div>
+          <div class="payment-name">InstaPay</div>
+        </label>
+        <label class="payment-opt">
+          <input type="radio" name="payment" value="Vodafone Cash" />
+          <div class="payment-icon">📱</div>
+          <div class="payment-name">Vodafone Cash</div>
+        </label>
+        <label class="payment-opt">
+          <input type="radio" name="payment" value="COD" />
+          <div class="payment-icon">💵</div>
+          <div class="payment-name" data-ar="عند الاستلام" data-en="Cash on Delivery">عند الاستلام</div>
+        </label>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="order-summary">
+        <h4 style="margin-bottom:14px;font-family:'Playfair Display',serif"
+            data-ar="ملخص الطلب" data-en="Order Summary">ملخص الطلب</h4>
+        <div class="summary-row">
+          <span data-ar="إجمالي المنتجات" data-en="Products Total">إجمالي المنتجات</span>
+          <span id="summary-sub">0 EGP</span>
+        </div>
+        <div class="summary-row discount hidden" id="summary-discount-row">
+          <span data-ar="الخصم" data-en="Discount">الخصم</span>
+          <span id="summary-discount">-0 EGP</span>
+        </div>
+        <div class="summary-row">
+          <span data-ar="الشحن" data-en="Shipping">الشحن</span>
+          <span>50 EGP</span>
+        </div>
+        <div class="summary-row total">
+          <span data-ar="الإجمالي النهائي" data-en="Grand Total">الإجمالي النهائي</span>
+          <span id="summary-total">0 EGP</span>
+        </div>
+      </div>
+
+      <button class="place-order-btn" onclick="placeOrder()" id="place-order-btn"
+              data-ar="✅ تأكيد الطلب" data-en="✅ Confirm Order">✅ تأكيد الطلب</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Confirmation Modal ──────────────────────────────────── -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal">
+    <div class="confirm-modal">
+      <div class="confirm-icon">✅</div>
+      <div class="confirm-title" data-ar="شكراً لطلبك!" data-en="Thank You!">شكراً لطلبك!</div>
+      <div class="confirm-num" id="confirm-order-num">#DW-000001</div>
+      <p class="confirm-msg" data-ar="تم استلام طلبك بنجاح. سيتواصل معك فريقنا خلال ساعة لتأكيد الشحن."
+         data-en="Your order has been received. Our team will contact you within an hour to confirm shipment.">
+        تم استلام طلبك بنجاح. سيتواصل معك فريقنا خلال ساعة لتأكيد الشحن.
+      </p>
+      <a id="whatsapp-link" href="#" target="_blank" class="whatsapp-btn">
+        <span>📱</span>
+        <span data-ar="تأكيد عبر WhatsApp" data-en="Confirm via WhatsApp">تأكيد عبر WhatsApp</span>
+      </a><br/>
+      <button onclick="closeConfirm()" class="btn btn-outline" style="margin-top:8px"
+              data-ar="متابعة التسوق" data-en="Continue Shopping">متابعة التسوق</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Scripts ─────────────────────────────────────────────── -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

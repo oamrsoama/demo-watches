@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة تحكم — سيستم الصيدلية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* ── Core palette ── */
+  --bg-0:        #06090F;
+  --bg-1:        #090D16;
+  --bg-mesh-1:   #0B1730;
+  --bg-mesh-2:   #0E2A2A;
+  --bg-mesh-3:   #150E2E;
+
+  --surface:        rgba(255,255,255,.035);
+  --surface-2:       rgba(255,255,255,.055);
+  --surface-hover:  rgba(255,255,255,.075);
+  --glass:          rgba(16,20,32,.55);
+  --glass-strong:   rgba(13,17,28,.72);
+
+  --border:         rgba(255,255,255,.08);
+  --border-soft:    rgba(255,255,255,.05);
+  --border-strong:  rgba(255,255,255,.14);
+
+  --text:           #F3F5F9;
+  --text-secondary: #A9B2C3;
+  --text-muted:     #6B7488;
+
+  /* ── Brand / accents ── */
+  --primary:        #5B8CFF;
+  --primary-2:      #8B6CFF;
+  --accent:         #00E5C7;
+  --accent-2:       #00C2FF;
+  --gold:           #F5B544;
+
+  --success:        #34D399;
+  --warn:            #FBBF52;
+  --danger:          #FB7185;
+
+  --grad-primary:    linear-gradient(135deg, #5B8CFF 0%, #8B6CFF 60%, #00E5C7 130%);
+  --grad-accent:     linear-gradient(120deg, #00E5C7 0%, #00C2FF 100%);
+  --grad-gold:       linear-gradient(120deg, #F5B544 0%, #F97B6B 100%);
+  --grad-danger:     linear-gradient(120deg, #FB7185 0%, #F43F5E 100%);
+  --grad-text:       linear-gradient(120deg, #F3F5F9 0%, #A9B2C3 100%);
+
+  --glow-primary:    0 0 0 1px rgba(91,140,255,.4), 0 0 40px rgba(91,140,255,.22);
+  --glow-accent:     0 0 0 1px rgba(0,229,199,.35), 0 0 40px rgba(0,229,199,.18);
+  --glow-soft:       0 0 32px rgba(91,140,255,.12);
+
+  --shadow-sm:   0 1px 2px rgba(0,0,0,.4);
+  --shadow-md:   0 8px 24px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.25);
+  --shadow-lg:   0 24px 60px rgba(0,0,0,.5), 0 8px 20px rgba(0,0,0,.3);
+  --shadow-xl:   0 40px 100px rgba(0,0,0,.55), 0 0 1px rgba(255,255,255,.08) inset;
+
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   18px;
+  --radius-xl:   26px;
+  --radius-full: 999px;
+
+  --sidebar: 264px;
+  --ease:    cubic-bezier(.16,1,.3,1);
+  --ease-spring: cubic-bezier(.34,1.56,.64,1);
+}
+
+html { font-size: 15px; scroll-behavior: smooth; }
+
+body {
+  font-family: 'Cairo', 'DM Sans', sans-serif;
+  background: var(--bg-0);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  position: relative;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: rgba(91,140,255,.35); color: #fff; }
+
+/* thin premium scrollbar */
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 99px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.22); background-clip: padding-box; }
+
+/* ============================================================
+   AMBIENT BACKGROUND
+   ============================================================ */
+.bg-mesh {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(900px 600px at 14% -6%, rgba(91,140,255,.16), transparent 60%),
+    radial-gradient(800px 700px at 100% 0%, rgba(0,229,199,.12), transparent 55%),
+    radial-gradient(1000px 800px at 50% 120%, rgba(139,108,255,.10), transparent 60%),
+    var(--bg-0);
+}
+.bg-noise {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: .55;
+  animation: float-orb 16s ease-in-out infinite;
+}
+.orb-1 { width: 420px; height: 420px; top: -120px; right: -80px; background: radial-gradient(circle, rgba(91,140,255,.5), transparent 70%); animation-delay: 0s; }
+.orb-2 { width: 360px; height: 360px; bottom: -100px; left: -60px; background: radial-gradient(circle, rgba(0,229,199,.4), transparent 70%); animation-delay: -6s; }
+.orb-3 { width: 300px; height: 300px; top: 40%; left: 38%; background: radial-gradient(circle, rgba(139,108,255,.3), transparent 70%); animation-delay: -11s; }
+
+@keyframes float-orb {
+  0%, 100% { transform: translate(0,0) scale(1); }
+  33%      { transform: translate(20px,-30px) scale(1.06); }
+  66%      { transform: translate(-25px,18px) scale(.96); }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes glow-pulse {
+  0%, 100% { opacity: .55; }
+  50%      { opacity: 1; }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.fade-up { animation: fade-up .6s var(--ease) both; }
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.sidebar {
+  width: var(--sidebar);
+  min-height: calc(100vh - 24px);
+  position: fixed;
+  right: 12px; top: 12px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  background: var(--glass);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: fade-up .5s var(--ease) both;
+}
+.sidebar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,.05) 1px, transparent 1px);
+  background-size: 26px 26px;
+  pointer-events: none;
+  opacity: .5;
+}
+
+.sidebar-logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border-soft);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.logo-mark {
+  width: 38px; height: 38px;
+  background: var(--grad-primary);
+  border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--glow-primary);
+  position: relative;
+}
+.logo-cross { width: 16px; height: 16px; position: relative; }
+.logo-cross::before, .logo-cross::after {
+  content: '';
+  position: absolute;
+  background: #0A0E18;
+  border-radius: 2px;
+}
+.logo-cross::before { width: 3.5px; height: 16px; left: 6.3px; top: 0; }
+.logo-cross::after  { width: 16px; height: 3.5px; left: 0; top: 6.3px; }
+.logo-text { color: var(--text); font-size: 15.5px; font-weight: 800; letter-spacing: .1px; }
+.logo-sub  { color: var(--text-muted); font-size: 11px; margin-top: 2px; font-weight: 500; }
+
+.nav { padding: 18px 12px; flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.nav-section-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  padding: 6px 12px 8px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 11px 14px;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: color .2s var(--ease), background .25s var(--ease), transform .15s var(--ease);
+  position: relative;
+  isolation: isolate;
+}
+.nav-item:hover { color: var(--text); background: var(--surface-hover); transform: translateX(-2px); }
+.nav-item.active {
+  color: #fff;
+  background: linear-gradient(135deg, rgba(91,140,255,.22), rgba(0,229,199,.12));
+  box-shadow: inset 0 0 0 1px rgba(91,140,255,.35), var(--glow-soft);
+}
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  right: -12px; top: 50%;
+  transform: translateY(-50%);
+  width: 3px; height: 60%;
+  border-radius: 99px;
+  background: var(--grad-accent);
+  box-shadow: 0 0 12px rgba(0,229,199,.6);
+}
+.nav-icon {
+  width: 18px; height: 18px;
+  opacity: .75;
+  flex-shrink: 0;
+  transition: opacity .2s, transform .25s var(--ease-spring);
+}
+.nav-item:hover .nav-icon { transform: scale(1.08) rotate(-2deg); }
+.nav-item.active .nav-icon { opacity: 1; }
+.nav-badge {
+  margin-right: auto;
+  background: var(--grad-accent);
+  color: #06120F;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2.5px 8px;
+  border-radius: 99px;
+  letter-spacing: .02em;
+}
+
+.sidebar-footer {
+  padding: 14px 16px;
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sf-avatar {
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  background: var(--grad-primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; color: #fff;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+.sf-meta { line-height: 1.3; overflow: hidden; }
+.sf-name { font-size: 12.5px; font-weight: 700; color: var(--text); white-space: nowrap; }
+.sf-role { font-size: 10.5px; color: var(--text-muted); }
+.sf-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); margin-right: auto; box-shadow: 0 0 8px rgba(52,211,153,.7); animation: glow-pulse 2.2s ease-in-out infinite; flex-shrink: 0; }
+
+/* ============================================================
+   MAIN
+   ============================================================ */
+.main {
+  margin-right: calc(var(--sidebar) + 24px);
+  flex: 1;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+.topbar {
+  background: var(--glass);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin: 12px 12px 0;
+  padding: 0 22px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  position: sticky; top: 12px; z-index: 15;
+  box-shadow: var(--shadow-md);
+  animation: fade-up .5s var(--ease) both .05s;
+}
+.topbar-title-wrap { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.topbar-eyebrow { font-size: 10.5px; font-weight: 700; letter-spacing: .07em; color: var(--text-muted); text-transform: uppercase; }
+.topbar-title { font-size: 16.5px; font-weight: 800; color: var(--text); white-space: nowrap; }
+
+.topbar-search {
+  display: flex; align-items: center; gap: 9px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 9px 14px;
+  width: 280px;
+  max-width: 32vw;
+  color: var(--text-muted);
+  transition: border-color .2s, background .2s, box-shadow .2s;
+}
+.topbar-search:focus-within { border-color: rgba(91,140,255,.5); background: var(--surface-2); box-shadow: 0 0 0 4px rgba(91,140,255,.12); }
+.topbar-search svg { width: 15px; height: 15px; flex-shrink: 0; opacity: .8; }
+.topbar-search input { background: none; border: none; outline: none; color: var(--text); font-family: 'Cairo',sans-serif; font-size: 13px; width: 100%; }
+.topbar-search input::placeholder { color: var(--text-muted); }
+.topbar-search kbd { font-size: 10.5px; color: var(--text-muted); background: var(--surface-2); border: 1px solid var(--border); border-radius: 5px; padding: 1.5px 6px; font-family: 'DM Mono',monospace; flex-shrink: 0; }
+
+.topbar-actions { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
+.icon-btn {
+  width: 38px; height: 38px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-secondary);
+  cursor: pointer;
+  position: relative;
+  transition: all .2s var(--ease);
+}
+.icon-btn:hover { background: var(--surface-hover); color: var(--text); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.icon-btn svg { width: 17px; height: 17px; }
+.icon-btn .dot {
+  position: absolute; top: 8px; left: 8px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--danger);
+  box-shadow: 0 0 0 2px var(--glass-strong);
+}
+.topbar-avatar {
+  width: 38px; height: 38px;
+  border-radius: var(--radius-md);
+  background: var(--grad-primary);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 13px; color: #fff;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform .2s var(--ease);
+}
+.topbar-avatar:hover { transform: scale(1.05); }
+
+.content { padding: 22px 12px 60px; position: relative; z-index: 1; }
+
+/* ============================================================
+   PANELS
+   ============================================================ */
+.panel { display: none; }
+.panel.active { display: block; animation: fade-up .45s var(--ease) both; }
+
+/* ============================================================
+   METRICS
+   ============================================================ */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.metric-card {
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px 22px 20px;
+  position: relative;
+  overflow: hidden;
+  transition: transform .3s var(--ease), box-shadow .3s var(--ease), border-color .3s var(--ease);
+  animation: fade-up .55s var(--ease) both;
+}
+.metrics-grid .metric-card:nth-child(1) { animation-delay: .03s; }
+.metrics-grid .metric-card:nth-child(2) { animation-delay: .08s; }
+.metrics-grid .metric-card:nth-child(3) { animation-delay: .13s; }
+.metrics-grid .metric-card:nth-child(4) { animation-delay: .18s; }
+.metric-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255,255,255,.16), transparent 40%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.metric-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(91,140,255,.35);
+  box-shadow: var(--shadow-lg), var(--glow-soft);
+}
+.metric-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+.metric-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.metric-trend {
+  display: flex; align-items: center; gap: 3px;
+  font-size: 11px; font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 99px;
+  background: rgba(52,211,153,.12);
+  color: var(--success);
+}
+.metric-trend.down { background: rgba(251,113,133,.12); color: var(--danger); }
+.metric-label { font-size: 11.5px; color: var(--text-muted); font-weight: 600; letter-spacing: .02em; margin-bottom: 8px; }
+.metric-val {
+  font-size: 32px; font-weight: 800; line-height: 1;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -.02em;
+}
+.metric-val.teal { background: var(--grad-accent); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.metric-val.warn { background: var(--grad-gold); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.metric-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 8px; }
+.metric-spark { display: flex; align-items: flex-end; gap: 3px; height: 22px; margin-top: 14px; }
+.metric-spark span { flex: 1; background: linear-gradient(180deg, rgba(91,140,255,.55), rgba(91,140,255,.05)); border-radius: 2px; transition: height .6s var(--ease); }
+
+/* ============================================================
+   SECTION CARD
+   ============================================================ */
+.card {
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+.card-header {
+  padding: 17px 22px;
+  border-bottom: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.card-title { font-size: 14.5px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 9px; }
+.card-title-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--grad-accent); box-shadow: 0 0 10px rgba(0,229,199,.6); }
+.card-body { padding: 22px; }
+
+/* ============================================================
+   TABLE
+   ============================================================ */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  text-align: right;
+  padding: 13px 18px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  background: rgba(255,255,255,.02);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0;
+  backdrop-filter: blur(8px);
+  z-index: 2;
+}
+tbody td {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: middle;
+  color: var(--text-secondary);
+}
+tbody tr { transition: background .2s var(--ease); }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: rgba(255,255,255,.025); }
+
+/* ============================================================
+   BADGES
+   ============================================================ */
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 11px;
+  border-radius: 99px;
+  font-size: 11.5px;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+.badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.badge-active  { background: rgba(52,211,153,.12); color: var(--success); border-color: rgba(52,211,153,.25); }
+.badge-active::before  { background: var(--success); box-shadow: 0 0 6px rgba(52,211,153,.8); }
+.badge-expired { background: rgba(251,113,133,.12); color: var(--danger); border-color: rgba(251,113,133,.25); }
+.badge-expired::before { background: var(--danger); }
+.badge-trial   { background: rgba(251,191,82,.12); color: var(--warn); border-color: rgba(251,191,82,.25); }
+.badge-trial::before   { background: var(--warn); box-shadow: 0 0 6px rgba(251,191,82,.7); }
+
+.plan-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid;
+  letter-spacing: .01em;
+}
+.plan-monthly { background: rgba(91,140,255,.1); color: #9CB6FF; border-color: rgba(91,140,255,.3); }
+.plan-yearly  { background: rgba(139,108,255,.1); color: #C5B2FF; border-color: rgba(139,108,255,.3); }
+.plan-onetime { background: rgba(52,211,153,.1); color: #7FE6BE; border-color: rgba(52,211,153,.3); }
+
+/* ============================================================
+   LICENSE KEY
+   ============================================================ */
+.license-key {
+  font-family: 'DM Mono', monospace;
+  font-size: 11.5px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 6px 11px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .2s var(--ease);
+  user-select: none;
+  letter-spacing: .6px;
+  color: var(--text-secondary);
+  display: inline-block;
+}
+.license-key:hover { border-color: rgba(0,229,199,.5); background: rgba(0,229,199,.08); color: var(--accent); box-shadow: 0 0 0 3px rgba(0,229,199,.08); }
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Cairo', sans-serif;
+  transition: transform .15s var(--ease), box-shadow .25s var(--ease), background .2s var(--ease), border-color .2s var(--ease), opacity .2s;
+  border: 1px solid transparent;
+  position: relative;
+  letter-spacing: .01em;
+}
+.btn:active { transform: scale(.96); }
+
+.btn-primary {
+  background: var(--grad-primary);
+  color: #fff;
+  box-shadow: 0 4px 18px rgba(91,140,255,.32);
+}
+.btn-primary:hover { box-shadow: 0 6px 26px rgba(91,140,255,.48); transform: translateY(-1px); }
+
+.btn-ghost { background: var(--surface); border-color: var(--border); color: var(--text-secondary); }
+.btn-ghost:hover { border-color: rgba(0,229,199,.4); color: var(--accent); background: rgba(0,229,199,.06); }
+
+.btn-danger { background: rgba(251,113,133,.12); color: var(--danger); border-color: rgba(251,113,133,.3); }
+.btn-danger:hover { background: rgba(251,113,133,.2); box-shadow: 0 4px 16px rgba(251,113,133,.2); }
+
+.btn-sm { padding: 6.5px 13px; font-size: 11.5px; border-radius: 8px; }
+
+.btn-navy { background: var(--surface-2); color: var(--text); border-color: var(--border-strong); }
+.btn-navy:hover { background: var(--surface-hover); }
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(4,6,12,.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  animation: fade-in .25s var(--ease);
+}
+.overlay.open { display: flex; }
+.modal {
+  background: linear-gradient(165deg, #11151F 0%, #0C1019 100%);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xl);
+  width: 520px;
+  max-width: 95vw;
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  animation: scale-in .35s var(--ease-spring);
+}
+.modal-head {
+  background: linear-gradient(135deg, rgba(91,140,255,.14), rgba(0,229,199,.08));
+  border-bottom: 1px solid var(--border-soft);
+  padding: 24px 28px;
+  position: relative;
+}
+.modal-head h2 { font-size: 17px; font-weight: 800; color: var(--text); }
+.modal-head p  { font-size: 12.5px; color: var(--text-muted); margin-top: 4px; }
+.modal-icon {
+  position: absolute; left: 24px; top: 50%; transform: translateY(-50%);
+  width: 40px; height: 40px; border-radius: 12px;
+  background: var(--grad-primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+  box-shadow: var(--glow-primary);
+}
+.modal-body { padding: 26px 28px 6px; }
+.modal-foot {
+  padding: 18px 28px;
+  border-top: 1px solid var(--border-soft);
+  display: flex; justify-content: flex-end; gap: 10px;
+  background: rgba(255,255,255,.015);
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 7px; }
+.form-label { font-size: 11.5px; font-weight: 700; color: var(--text-muted); letter-spacing: .02em; }
+
+input[type=text], input[type=number], input[type=date], select, textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px;
+  font-family: 'Cairo', sans-serif;
+  color: var(--text);
+  background: var(--surface);
+  transition: border-color .2s var(--ease), box-shadow .2s var(--ease), background .2s;
+  outline: none;
+}
+input::placeholder { color: var(--text-muted); }
+input:focus, select:focus {
+  border-color: rgba(91,140,255,.55);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 4px rgba(91,140,255,.13);
+}
+select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23A9B2C3' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: left 14px center; padding-left: 32px; }
+
+.key-gen-wrap { position: relative; }
+.key-gen-wrap input { font-family: 'DM Mono', monospace; letter-spacing: 1px; font-size: 12px; background: var(--surface); padding-left: 76px; color: var(--accent); }
+.key-gen-btn {
+  position: absolute;
+  left: 7px; top: 50%;
+  transform: translateY(-50%);
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 5px 10px;
+  color: var(--accent); font-size: 11.5px; cursor: pointer;
+  font-family: 'Cairo', sans-serif; font-weight: 700;
+  transition: background .2s, transform .2s;
+}
+.key-gen-btn:hover { background: rgba(0,229,199,.12); transform: translateY(-50%) scale(1.04); }
+
+/* ============================================================
+   CHARTS
+   ============================================================ */
+.bar-chart { display: flex; flex-direction: column; gap: 12px; }
+.bar-row { display: flex; align-items: center; gap: 14px; }
+.bar-month { width: 50px; font-size: 12px; color: var(--text-muted); text-align: right; flex-shrink: 0; font-weight: 600; }
+.bar-bg {
+  flex: 1; height: 30px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+.bar-fill {
+  height: 100%;
+  background: var(--grad-accent);
+  border-radius: 8px;
+  transition: width 1s var(--ease);
+  display: flex; align-items: center; justify-content: flex-end; padding-left: 12px;
+  box-shadow: 0 0 18px rgba(0,229,199,.35);
+  position: relative;
+  overflow: hidden;
+}
+.bar-fill::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2.6s linear infinite;
+}
+.bar-fill-label { font-size: 11px; font-weight: 700; color: #06120F; position: relative; z-index: 1; }
+.bar-val { width: 76px; font-size: 12px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+
+/* ============================================================
+   LINK TRACKING
+   ============================================================ */
+.link-track-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+.link-track-item:last-child { border-bottom: none; }
+.link-source-icon {
+  width: 38px; height: 38px;
+  border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+.lt-wa  { background: rgba(52,211,153,.12); }
+.lt-fb  { background: rgba(91,140,255,.12); }
+.lt-ig  { background: rgba(244,114,182,.12); }
+.lt-dir { background: var(--surface); }
+.link-source-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.link-source-time { font-size: 11px; color: var(--text-muted); }
+.link-prog-wrap { flex: 1; }
+.link-prog-bg  { height: 6px; background: var(--surface); border-radius: 3px; margin-top: 5px; overflow: hidden; }
+.link-prog-fill{ height: 100%; background: var(--grad-primary); border-radius: 3px; transition: width 1s var(--ease); }
+.link-count { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 600; color: var(--text); margin-right: auto; }
+
+/* ============================================================
+   SQL BLOCK
+   ============================================================ */
+.sql-block {
+  background: #070A11;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 22px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  line-height: 1.8;
+  color: #9ECFFF;
+  overflow-x: auto;
+  white-space: pre;
+  position: relative;
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+.toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px) scale(.96);
+  background: var(--glass-strong);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  padding: 13px 22px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  z-index: 999;
+  opacity: 0;
+  transition: all .3s var(--ease-spring);
+  pointer-events: none;
+  display: flex; align-items: center; gap: 10px;
+  border-right: 3px solid var(--accent);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+
+/* ============================================================
+   MISC
+   ============================================================ */
+.expiry-warn { color: var(--warn); font-size: 11.5px; display: flex; align-items: center; gap: 4px; font-weight: 600; }
+
+.info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.info-card {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  backdrop-filter: blur(14px);
+  transition: transform .25s var(--ease), border-color .25s;
+}
+.info-card:hover { transform: translateY(-3px); border-color: rgba(91,140,255,.3); }
+.info-card-label { font-size: 11px; color: var(--text-muted); font-weight: 700; margin-bottom: 8px; letter-spacing: .02em; }
+.info-card-val { font-size: 24px; font-weight: 800; color: var(--text); font-family: 'DM Sans', sans-serif; letter-spacing: -.02em; }
+.info-card-sub { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1080px) {
+  .metrics-grid { grid-template-columns: 1fr 1fr; }
+  .info-grid { grid-template-columns: 1fr; }
+  .topbar-search { display: none; }
+}
+@media (max-width: 760px) {
+  :root { --sidebar: 0px; }
+  .sidebar { display: none; }
+  .main { margin-right: 0; }
+  .metrics-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-row { grid-template-columns: 1fr; }
+  .content { padding: 14px 8px 50px; }
+  .topbar { margin: 8px 8px 0; padding: 0 14px; }
+  .card-body { padding: 16px; }
+}
+@media (max-width: 480px) {
+  .metrics-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-mesh"></div>
+<div class="bg-noise"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark"><div class="logo-cross"></div></div>
+    <div>
+      <div class="logo-text">PharmSys</div>
+      <div class="logo-sub">نظام إدارة الصيدليات</div>
+    </div>
+  </div>
+  <nav class="nav">
+    <div class="nav-section-label">القائمة الرئيسية</div>
+    <div class="nav-item active" onclick="switchPanel('pharmacies', this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      الصيدليات
+      <span class="nav-badge" id="nb-total">5</span>
+    </div>
+    <div class="nav-item" onclick="switchPanel('revenue', this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l4-4 4 4 4-8 4 4"/><path d="M21 21H3"/></svg>
+      الإيرادات
+    </div>
+    <div class="nav-item" onclick="switchPanel('links', this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+      تتبع الروابط
+    </div>
+    <div class="nav-item" onclick="switchPanel('sql', this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      كود Supabase
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sf-avatar">عم</div>
+    <div class="sf-meta">
+      <div class="sf-name">عمر ناشا</div>
+      <div class="sf-role">مدير النظام</div>
+    </div>
+    <div class="sf-dot"></div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-title-wrap">
+      <span class="topbar-eyebrow">PharmSys / لوحة التحكم</span>
+      <span class="topbar-title" id="topbar-title">الصيدليات المسجلة</span>
+    </div>
+
+    <div class="topbar-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" placeholder="بحث عن صيدلية، كود..." />
+      <kbd>⌘K</kbd>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="icon-btn" onclick="showToast('🔔 لا توجد إشعارات جديدة')">
+        <span class="dot"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="showToast('⚙ الإعدادات قريباً')">إعدادات</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal()">+ إضافة صيدلية</button>
+      <div class="topbar-avatar">عم</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- METRICS -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-card-top">
+          <div class="metric-icon">🏥</div>
+          <span class="metric-trend">▲ 12%</span>
+        </div>
+        <div class="metric-label">إجمالي الصيدليات</div>
+        <div class="metric-val" id="m-total">5</div>
+        <div class="metric-sub">مسجلة في النظام</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-card-top">
+          <div class="metric-icon">⚡</div>
+          <span class="metric-trend">▲ 8%</span>
+        </div>
+        <div class="metric-label">اشتراكات نشطة</div>
+        <div class="metric-val teal" id="m-active">3</div>
+        <div class="metric-sub">تجديدية شهرياً</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-card-top">
+          <div class="metric-icon">💰</div>
+          <span class="metric-trend">▲ 24%</span>
+        </div>
+        <div class="metric-label">إيرادات الشهر</div>
+        <div class="metric-val" id="m-rev">2,500</div>
+        <div class="metric-sub">جنيه مصري</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-card-top">
+          <div class="metric-icon">📈</div>
+          <span class="metric-trend down">▼ 3%</span>
+        </div>
+        <div class="metric-label">زيارات الروابط</div>
+        <div class="metric-val warn" id="m-visits">148</div>
+        <div class="metric-sub">هذا الشهر</div>
+      </div>
+    </div>
+
+    <!-- PHARMACIES PANEL -->
+    <div class="panel active" id="panel-pharmacies">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title"><span class="card-title-dot"></span>الصيدليات</span>
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV()">تصدير CSV</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>الصيدلية</th>
+                <th>نوع الاشتراك</th>
+                <th>الحالة</th>
+                <th>تاريخ الانتهاء</th>
+                <th>كود التفعيل</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="pharm-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- REVENUE PANEL -->
+    <div class="panel" id="panel-revenue">
+      <div class="info-grid" style="margin-bottom:20px;">
+        <div class="info-card">
+          <div class="info-card-label">اشتراكات شهرية</div>
+          <div class="info-card-val" id="r-monthly">1,500</div>
+          <div class="info-card-sub">جنيه / الشهر</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-label">اشتراكات سنوية</div>
+          <div class="info-card-val" id="r-yearly">250</div>
+          <div class="info-card-sub">جنيه / الشهر (مقسوم)</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-label">دفعات فورية</div>
+          <div class="info-card-val" id="r-once">4,500</div>
+          <div class="info-card-sub">جنيه (إجمالي)</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title"><span class="card-title-dot"></span>نمو الإيرادات — آخر 6 شهور</span></div>
+        <div class="card-body">
+          <div class="bar-chart" id="rev-chart"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LINKS PANEL -->
+    <div class="panel" id="panel-links">
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">
+          <span class="card-title"><span class="card-title-dot"></span>رابط التسويق</span>
+          <button class="btn btn-ghost btn-sm" onclick="copyLink()">نسخ الرابط</button>
+        </div>
+        <div class="card-body" style="padding:14px 22px;">
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:11px 16px; font-family:'DM Mono',monospace; font-size:12px; color:var(--text-muted); letter-spacing:.3px;">
+            https://pharmsys.app/demo?ref=<span style="color:var(--accent); font-weight:600;">omar-nasha</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title"><span class="card-title-dot"></span>مصادر الزيارات</span><span style="font-size:12px;color:var(--text-muted)">148 زيارة هذا الشهر</span></div>
+        <div class="card-body" style="padding:16px 22px;">
+          <div id="links-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SQL PANEL -->
+    <div class="panel" id="panel-sql">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title"><span class="card-title-dot"></span>SQL — الصق في Supabase → SQL Editor</span>
+          <button class="btn btn-primary btn-sm" onclick="copySQL()">نسخ الكود كامل</button>
+        </div>
+        <div style="padding:16px;">
+          <pre class="sql-block" id="sql-pre"></pre>
+        </div>
+      </div>
+    </div>
+  </div><!-- /content -->
+</main>
+
+<!-- ADD MODAL -->
+<div class="overlay" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-icon">🏥</div>
+      <h2 style="padding-right:54px;">إضافة صيدلية جديدة</h2>
+      <p style="padding-right:54px;">سيتم توليد كود التفعيل تلقائياً</p>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">اسم الصيدلية</label>
+          <input type="text" id="f-name" placeholder="صيدلية النور">
+        </div>
+        <div class="form-group">
+          <label class="form-label">اسم المالك</label>
+          <input type="text" id="f-owner" placeholder="محمد أحمد">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">رقم الهاتف</label>
+          <input type="text" id="f-phone" placeholder="010XXXXXXXX">
+        </div>
+        <div class="form-group">
+          <label class="form-label">نوع الاشتراك</label>
+          <select id="f-plan" onchange="planChanged()">
+            <option value="monthly">شهري — 400 جنيه</option>
+            <option value="yearly">سنوي — 3,000 جنيه</option>
+            <option value="onetime">دفعة واحدة — 4,500 جنيه</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">السعر المدفوع (جنيه)</label>
+          <input type="number" id="f-price" value="400">
+        </div>
+        <div class="form-group">
+          <label class="form-label">تاريخ انتهاء الاشتراك</label>
+          <input type="date" id="f-end">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:4px;">
+        <label class="form-label">كود التفعيل</label>
+        <div class="key-gen-wrap">
+          <input type="text" id="f-key" readonly>
+          <button class="key-gen-btn" onclick="regenKey()">↻ جديد</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="addPharmacy()">إضافة الصيدلية ←</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== DATA ===== */
+const PLANS = {
+  monthly:  { label: 'شهري',        price: 400,  days: 30  },
+  yearly:   { label: 'سنوي',        price: 3000, days: 365 },
+  onetime:  { label: 'دفعة واحدة', price: 4500, days: null }
+};
+
+let pharmacies = [
+  { id:1, name:'صيدلية النور',    owner:'محمد أحمد',  phone:'01001234567', plan:'monthly', status:'active',  key:'ABCD-EFGH-1234-WXYZ', end:'2025-07-22', price:400  },
+  { id:2, name:'صيدلية الشفاء',   owner:'أحمد علي',   phone:'01112345678', plan:'yearly',  status:'active',  key:'MNOP-QRST-5678-IJKL', end:'2026-01-15', price:3000 },
+  { id:3, name:'صيدلية الحياة',   owner:'سارة محمود', phone:'01223456789', plan:'onetime', status:'active',  key:'UVWX-YZ12-3456-ABCD', end:null,         price:4500 },
+  { id:4, name:'صيدلية السلامة',  owner:'علي حسن',    phone:'01334567890', plan:'monthly', status:'expired', key:'GHIJ-KLMN-7890-EFGH', end:'2025-05-01', price:400  },
+  { id:5, name:'صيدلية الرعاية',  owner:'فاطمة خالد', phone:'01445678901', plan:'monthly', status:'trial',   key:'PQRS-TUVW-2345-MNOP', end:'2025-06-30', price:0    },
+];
+
+const REV_DATA = [
+  {m:'يناير',v:800}, {m:'فبراير',v:1200}, {m:'مارس',v:1600},
+  {m:'أبريل',v:2000},{m:'مايو',v:2200},   {m:'يونيو',v:2500}
+];
+
+const LINKS_DATA = [
+  { source:'واتساب', icon:'💬', cls:'lt-wa',  visits:68, last:'منذ ساعة'   },
+  { source:'فيسبوك', icon:'👥', cls:'lt-fb',  visits:45, last:'منذ 3 ساعات'},
+  { source:'مباشر',  icon:'🌐', cls:'lt-dir', visits:22, last:'منذ يوم'    },
+  { source:'انستغرام',icon:'📸',cls:'lt-ig',  visits:13, last:'منذ يومين'  },
+];
+
+/* ===== KEY GEN ===== */
+function genKey() {
+  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let r = '';
+  for (let g = 0; g < 4; g++) {
+    for (let i = 0; i < 4; i++) r += c[Math.floor(Math.random() * c.length)];
+    if (g < 3) r += '-';
+  }
+  return r;
+}
+
+/* ===== RENDER PHARMACIES ===== */
+function renderPharmacies() {
+  const tbody = document.getElementById('pharm-tbody');
+  const statusLabel = { active:'نشط', expired:'منتهي', trial:'تجريبي' };
+  tbody.innerHTML = pharmacies.map(p => {
+    const endStr = p.end
+      ? (new Date(p.end) < new Date()
+          ? `<span class="expiry-warn">⚠ ${p.end}</span>`
+          : `<span style="font-size:13px">${p.end}</span>`)
+      : `<span style="color:var(--teal-d);font-size:12px;font-weight:600;">مدى الحياة</span>`;
+    return `<tr>
+      <td>
+        <div style="font-weight:600;font-size:14px">${p.name}</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:2px">${p.owner} • ${p.phone}</div>
+      </td>
+      <td><span class="plan-badge plan-${p.plan}">${PLANS[p.plan].label}</span></td>
+      <td><span class="badge badge-${p.status}">${statusLabel[p.status]}</span></td>
+      <td>${endStr}</td>
+      <td><span class="license-key" onclick="copyKey('${p.key}')" title="اضغط للنسخ">${p.key}</span></td>
+      <td>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${p.status !== 'active'
+            ? `<button class="btn btn-ghost btn-sm" onclick="renewPh(${p.id})">تجديد</button>` : ''}
+          ${p.status === 'active'
+            ? `<button class="btn btn-danger btn-sm" onclick="suspendPh(${p.id})">إيقاف</button>` : ''}
+          <button class="btn btn-ghost btn-sm" onclick="copyKey('${p.key}')">نسخ الكود</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // metrics
+  const active = pharmacies.filter(p => p.status === 'active').length;
+  const rev = pharmacies.filter(p => p.status === 'active' && p.plan === 'monthly').reduce((a,p)=>a+p.price,0);
+  document.getElementById('m-total').textContent = pharmacies.length;
+  document.getElementById('m-active').textContent = active;
+  document.getElementById('m-rev').textContent = rev.toLocaleString('ar-EG');
+  document.getElementById('nb-total').textContent = pharmacies.length;
+
+  // revenue breakdown
+  const monthly_rev = pharmacies.filter(p=>p.status==='active'&&p.plan==='monthly').reduce((a,p)=>a+p.price,0);
+  const yearly_ph = pharmacies.filter(p=>p.status==='active'&&p.plan==='yearly');
+  const yearly_monthly = yearly_ph.reduce((a,p)=>a+Math.round(p.price/12),0);
+  const once = pharmacies.filter(p=>p.plan==='onetime').reduce((a,p)=>a+p.price,0);
+  document.getElementById('r-monthly').textContent = monthly_rev.toLocaleString('ar-EG');
+  document.getElementById('r-yearly').textContent = yearly_monthly.toLocaleString('ar-EG');
+  document.getElementById('r-once').textContent = once.toLocaleString('ar-EG');
+}
+
+/* ===== RENDER REVENUE CHART ===== */
+function renderRevChart() {
+  const max = Math.max(...REV_DATA.map(r=>r.v));
+  document.getElementById('rev-chart').innerHTML = REV_DATA.map(r => {
+    const pct = Math.round(r.v / max * 100);
+    return `<div class="bar-row">
+      <span class="bar-month">${r.m}</span>
+      <div class="bar-bg">
+        <div class="bar-fill" style="width:${pct}%">
+          ${pct > 30 ? `<span class="bar-fill-label">${r.v.toLocaleString('ar-EG')} ج</span>` : ''}
+        </div>
+      </div>
+      <span class="bar-val">${pct <= 30 ? r.v.toLocaleString('ar-EG')+' ج' : ''}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ===== RENDER LINKS ===== */
+function renderLinks() {
+  const total = LINKS_DATA.reduce((a,l)=>a+l.visits,0);
+  document.getElementById('links-list').innerHTML = LINKS_DATA.map(l => {
+    const pct = Math.round(l.visits/total*100);
+    return `<div class="link-track-item">
+      <div class="link-source-icon ${l.cls}">${l.icon}</div>
+      <div class="link-prog-wrap">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="link-source-name">${l.source}</span>
+          <span class="link-source-time">${l.last}</span>
+        </div>
+        <div class="link-prog-bg"><div class="link-prog-fill" style="width:${pct}%"></div></div>
+      </div>
+      <span class="link-count">${l.visits}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ===== SQL TEXT ===== */
+const SQL_TEXT = `-- ╔══════════════════════════════════════════════╗
+-- ║    PharmSys — Supabase Schema v1.0           ║
+-- ║    الصق هذا الكود في SQL Editor              ║
+-- ╚══════════════════════════════════════════════╝
+
+-- 1. جدول الصيدليات والاشتراكات
+CREATE TABLE pharmacies (
+  id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name        TEXT NOT NULL,
+  owner_name  TEXT,
+  phone       TEXT,
+  plan        TEXT CHECK (plan IN ('monthly','yearly','onetime'))
+              DEFAULT 'monthly',
+  status      TEXT CHECK (status IN ('active','expired','trial'))
+              DEFAULT 'trial',
+  license_key TEXT UNIQUE NOT NULL,
+  price_paid  NUMERIC(10,2) DEFAULT 0,
+  start_date  DATE DEFAULT CURRENT_DATE,
+  end_date    DATE,
+  notes       TEXT,
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. جدول تتبع الروابط
+CREATE TABLE link_visits (
+  id         UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  link_id    TEXT NOT NULL DEFAULT 'main',
+  source     TEXT DEFAULT 'direct',
+  ip_hash    TEXT,
+  user_agent TEXT,
+  country    TEXT,
+  visited_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3. دالة توليد كود التفعيل
+CREATE OR REPLACE FUNCTION generate_license_key()
+RETURNS TEXT AS $$
+DECLARE
+  chars  TEXT := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  result TEXT := '';
+  i      INT;
+BEGIN
+  FOR grp IN 1..4 LOOP
+    FOR i IN 1..4 LOOP
+      result := result ||
+        substring(chars FROM
+          (floor(random()*length(chars))+1)::int FOR 1);
+    END LOOP;
+    IF grp < 4 THEN result := result || '-'; END IF;
+  END LOOP;
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 4. دالة التحقق من اللايسنس
+-- استخدمها في السيستم: SELECT * FROM verify_license('XXXX-XXXX-XXXX-XXXX');
+CREATE OR REPLACE FUNCTION verify_license(p_key TEXT)
+RETURNS JSONB AS $$
+DECLARE
+  rec pharmacies%ROWTYPE;
+BEGIN
+  SELECT * INTO rec FROM pharmacies
+  WHERE license_key = upper(trim(p_key));
+
+  IF NOT FOUND THEN
+    RETURN '{"valid":false,"reason":"key_not_found"}'::JSONB;
+  END IF;
+
+  IF rec.status = 'expired' THEN
+    RETURN '{"valid":false,"reason":"subscription_expired"}'::JSONB;
+  END IF;
+
+  -- تحقق من انتهاء تاريخ الاشتراك (شهري/سنوي فقط)
+  IF rec.plan != 'onetime' AND rec.end_date IS NOT NULL
+     AND rec.end_date < CURRENT_DATE THEN
+    UPDATE pharmacies SET status = 'expired' WHERE id = rec.id;
+    RETURN '{"valid":false,"reason":"subscription_ended"}'::JSONB;
+  END IF;
+
+  RETURN jsonb_build_object(
+    'valid',      true,
+    'pharmacy',   rec.name,
+    'owner',      rec.owner_name,
+    'plan',       rec.plan,
+    'end_date',   rec.end_date,
+    'days_left',  CASE
+                    WHEN rec.plan = 'onetime' THEN 99999
+                    ELSE (rec.end_date - CURRENT_DATE)
+                  END
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 5. تسجيل زيارة رابط
+CREATE OR REPLACE FUNCTION track_link_visit(
+  p_link_id TEXT DEFAULT 'main',
+  p_source  TEXT DEFAULT 'direct'
+)
+RETURNS VOID AS $$
+BEGIN
+  INSERT INTO link_visits (link_id, source)
+  VALUES (p_link_id, p_source);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 6. بيانات تجريبية
+INSERT INTO pharmacies
+  (name, owner_name, phone, plan, status,
+   license_key, price_paid, end_date)
+VALUES
+  ('صيدلية النور', 'محمد أحمد', '01001234567',
+   'monthly', 'active', generate_license_key(),
+   400, CURRENT_DATE + 30),
+
+  ('صيدلية الشفاء', 'أحمد علي', '01112345678',
+   'yearly', 'active', generate_license_key(),
+   3000, CURRENT_DATE + 365),
+
+  ('صيدلية الحياة', 'سارة محمود', '01223456789',
+   'onetime', 'active', generate_license_key(),
+   4500, NULL);
+
+-- 7. كود JavaScript للتحقق من اللايسنس في السيستم
+-- ضعه في أول ما السيستم بيفتح:
+--
+-- const { data } = await supabase.rpc('verify_license', {
+--   p_key: userLicenseKey
+-- });
+-- if (!data.valid) {
+--   alert('الاشتراك منتهي — تواصل مع الدعم');
+--   window.location.href = '/expired';
+-- }`;
+
+function renderSQL() {
+  document.getElementById('sql-pre').textContent = SQL_TEXT;
+}
+
+/* ===== ACTIONS ===== */
+function copyKey(k) {
+  navigator.clipboard?.writeText(k);
+  showToast('✓ تم نسخ الكود: ' + k);
+}
+function copyLink() {
+  navigator.clipboard?.writeText('https://pharmsys.app/demo?ref=omar-nasha');
+  showToast('✓ تم نسخ الرابط');
+}
+function copySQL() {
+  navigator.clipboard?.writeText(SQL_TEXT);
+  showToast('✓ تم نسخ كود SQL كامل');
+}
+function exportCSV() {
+  const rows = [['الصيدلية','المالك','الهاتف','الاشتراك','الحالة','الانتهاء','الكود']];
+  pharmacies.forEach(p => rows.push([p.name,p.owner,p.phone,PLANS[p.plan].label,p.status,p.end||'—',p.key]));
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv);
+  a.download = 'pharmacies.csv'; a.click();
+  showToast('✓ تم تصدير الملف');
+}
+function renewPh(id) {
+  const p = pharmacies.find(x=>x.id===id); if(!p) return;
+  p.status = 'active';
+  const d = new Date();
+  d.setDate(d.getDate() + (PLANS[p.plan].days || 30));
+  p.end = d.toISOString().split('T')[0];
+  renderPharmacies();
+  showToast('✓ تم تجديد الاشتراك');
+}
+function suspendPh(id) {
+  const p = pharmacies.find(x=>x.id===id); if(!p) return;
+  p.status = 'expired';
+  renderPharmacies();
+  showToast('تم إيقاف الاشتراك');
+}
+
+/* ===== MODAL ===== */
+function openModal() {
+  document.getElementById('f-key').value = genKey();
+  planChanged();
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+function regenKey()   { document.getElementById('f-key').value = genKey(); }
+function planChanged() {
+  const plan = document.getElementById('f-plan').value;
+  document.getElementById('f-price').value = PLANS[plan].price;
+  const d = new Date();
+  if (PLANS[plan].days) {
+    d.setDate(d.getDate() + PLANS[plan].days);
+    document.getElementById('f-end').value = d.toISOString().split('T')[0];
+  } else {
+    document.getElementById('f-end').value = '';
+  }
+}
+function addPharmacy() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { showToast('⚠ اكتب اسم الصيدلية!'); return; }
+  const plan = document.getElementById('f-plan').value;
+  pharmacies.push({
+    id: Date.now(),
+    name,
+    owner: document.getElementById('f-owner').value || '—',
+    phone: document.getElementById('f-phone').value || '—',
+    plan,
+    status: 'active',
+    key: document.getElementById('f-key').value,
+    end: document.getElementById('f-end').value || null,
+    price: +document.getElementById('f-price').value
+  });
+  renderPharmacies();
+  closeModal();
+  showToast('✓ تم إضافة ' + name);
+  ['f-name','f-owner','f-phone'].forEach(id => document.getElementById(id).value = '');
+}
+
+/* ===== PANEL SWITCH ===== */
+const TITLES = {
+  pharmacies:'الصيدليات المسجلة',
+  revenue:'الإيرادات',
+  links:'تتبع الروابط',
+  sql:'كود Supabase SQL'
+};
+function switchPanel(name, el) {
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+  document.getElementById('topbar-title').textContent = TITLES[name];
+}
+
+/* ===== TOAST ===== */
+let toastTmr;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTmr);
+  toastTmr = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+/* ===== INIT ===== */
+renderPharmacies();
+renderRevChart();
+renderLinks();
+renderSQL();
+</script>
+</body>
+</html>

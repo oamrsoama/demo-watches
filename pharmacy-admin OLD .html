@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة تحكم — سيستم الصيدلية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy:    #0A2540;
+  --navy-2:  #112E4D;
+  --navy-3:  #1A3A5C;
+  --teal:    #00B4A6;
+  --teal-d:  #009990;
+  --teal-bg: #E6F8F7;
+  --white:   #FFFFFF;
+  --off:     #F5F7FA;
+  --border:  #E2E8F0;
+  --text:    #1A2332;
+  --muted:   #64748B;
+  --danger:  #E53E3E;
+  --warn:    #D97706;
+  --success: #059669;
+  --sidebar: 240px;
+  --radius:  10px;
+  --shadow:  0 1px 3px rgba(10,37,64,.06), 0 4px 16px rgba(10,37,64,.08);
+}
+html { font-size: 15px; }
+body {
+  font-family: 'Cairo', 'DM Sans', sans-serif;
+  background: var(--off);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: var(--sidebar);
+  background: var(--navy);
+  min-height: 100vh;
+  position: fixed;
+  right: 0; top: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+  overflow: hidden;
+}
+/* cross/plus texture */
+.sidebar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+}
+.sidebar-logo {
+  padding: 28px 22px 22px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  position: relative;
+}
+.logo-mark {
+  width: 36px; height: 36px;
+  background: var(--teal);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 10px;
+}
+.logo-cross {
+  width: 16px; height: 16px;
+  position: relative;
+}
+.logo-cross::before, .logo-cross::after {
+  content: '';
+  position: absolute;
+  background: var(--navy);
+  border-radius: 2px;
+}
+.logo-cross::before { width: 4px; height: 16px; left: 6px; top: 0; }
+.logo-cross::after  { width: 16px; height: 4px; left: 0; top: 6px; }
+.logo-text { color: white; font-size: 15px; font-weight: 700; letter-spacing: .2px; }
+.logo-sub  { color: rgba(255,255,255,.4); font-size: 11px; margin-top: 2px; }
+
+.nav { padding: 16px 0; flex: 1; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 22px;
+  color: rgba(255,255,255,.55);
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: all .15s;
+  border-left: 3px solid transparent;
+  position: relative;
+}
+.nav-item:hover { color: rgba(255,255,255,.85); background: rgba(255,255,255,.05); }
+.nav-item.active {
+  color: white;
+  background: rgba(255,255,255,.08);
+  border-left-color: var(--teal);
+}
+.nav-icon {
+  width: 18px; height: 18px;
+  opacity: .7;
+  flex-shrink: 0;
+}
+.nav-item.active .nav-icon { opacity: 1; }
+.nav-badge {
+  margin-right: auto;
+  background: var(--teal);
+  color: var(--navy);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 99px;
+}
+
+.sidebar-footer {
+  padding: 16px 22px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  font-size: 11px;
+  color: rgba(255,255,255,.3);
+}
+
+/* ===== MAIN ===== */
+.main {
+  margin-right: var(--sidebar);
+  flex: 1;
+  padding: 0;
+  min-height: 100vh;
+}
+.topbar {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0; z-index: 5;
+}
+.topbar-title { font-size: 16px; font-weight: 600; }
+.topbar-actions { display: flex; gap: 10px; align-items: center; }
+.content { padding: 28px 32px; }
+
+/* ===== PANELS ===== */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ===== METRICS ===== */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.metric-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow .2s;
+}
+.metric-card:hover { box-shadow: var(--shadow); }
+.metric-card::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--teal);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+.metric-label { font-size: 11.5px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; }
+.metric-val { font-size: 30px; font-weight: 700; line-height: 1; color: var(--navy); font-family: 'DM Sans', sans-serif; }
+.metric-val.teal { color: var(--teal-d); }
+.metric-val.warn { color: var(--warn); }
+.metric-sub { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+/* ===== SECTION CARD ===== */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.card-header {
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-title { font-size: 14px; font-weight: 600; }
+.card-body { padding: 22px; }
+
+/* ===== TABLE ===== */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: right;
+  padding: 11px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  background: var(--off);
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #FAFBFC; }
+
+/* ===== BADGES ===== */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+.badge-active  { background: #DCFCE7; color: #166534; }
+.badge-active::before  { background: #22C55E; }
+.badge-expired { background: #FEE2E2; color: #991B1B; }
+.badge-expired::before { background: #EF4444; }
+.badge-trial   { background: #FEF9C3; color: #854D0E; }
+.badge-trial::before   { background: #EAB308; }
+
+.plan-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid;
+}
+.plan-monthly { background: #EFF6FF; color: #1E40AF; border-color: #BFDBFE; }
+.plan-yearly  { background: #F5F3FF; color: #5B21B6; border-color: #DDD6FE; }
+.plan-onetime { background: #F0FDF4; color: #166534; border-color: #BBF7D0; }
+
+/* ===== KEY DISPLAY ===== */
+.license-key {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  background: var(--off);
+  border: 1px solid var(--border);
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all .15s;
+  user-select: none;
+  letter-spacing: .8px;
+  color: var(--navy);
+}
+.license-key:hover { border-color: var(--teal); background: var(--teal-bg); color: var(--teal-d); }
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Cairo', sans-serif;
+  transition: all .15s;
+  border: none;
+}
+.btn-primary { background: var(--teal); color: white; }
+.btn-primary:hover { background: var(--teal-d); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,180,166,.3); }
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-ghost:hover { border-color: var(--teal); color: var(--teal-d); background: var(--teal-bg); }
+.btn-danger { background: #FEE2E2; color: var(--danger); border: 1px solid #FECACA; }
+.btn-danger:hover { background: #FECACA; }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn-navy { background: var(--navy); color: white; }
+.btn-navy:hover { background: var(--navy-2); }
+
+/* ===== MODAL ===== */
+.overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(10,37,64,.5);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+.overlay.open { display: flex; }
+.modal {
+  background: var(--white);
+  border-radius: 14px;
+  width: 500px;
+  max-width: 95vw;
+  box-shadow: 0 20px 60px rgba(10,37,64,.25);
+  overflow: hidden;
+}
+.modal-head {
+  background: var(--navy);
+  padding: 20px 24px;
+  color: white;
+}
+.modal-head h2 { font-size: 16px; font-weight: 600; }
+.modal-head p  { font-size: 12px; opacity: .55; margin-top: 3px; }
+.modal-body { padding: 24px; }
+.modal-foot {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end; gap: 10px;
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-label { font-size: 12px; font-weight: 600; color: var(--muted); }
+input[type=text], input[type=number], input[type=date], select, textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-size: 13px;
+  font-family: 'Cairo', sans-serif;
+  color: var(--text);
+  background: var(--white);
+  transition: border-color .15s;
+  outline: none;
+}
+input:focus, select:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(0,180,166,.1); }
+.key-gen-wrap { position: relative; }
+.key-gen-wrap input { font-family: 'DM Mono', monospace; letter-spacing: 1px; font-size: 12px; background: var(--off); }
+.key-gen-btn {
+  position: absolute;
+  left: 8px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  color: var(--teal-d); font-size: 12px; cursor: pointer;
+  font-family: 'Cairo', sans-serif; font-weight: 600;
+}
+
+/* ===== CHARTS ===== */
+.bar-chart { display: flex; flex-direction: column; gap: 10px; }
+.bar-row { display: flex; align-items: center; gap: 12px; }
+.bar-month { width: 48px; font-size: 12px; color: var(--muted); text-align: right; flex-shrink: 0; }
+.bar-bg {
+  flex: 1; height: 28px;
+  background: var(--off);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal) 0%, #00D4C4 100%);
+  border-radius: 6px;
+  transition: width .6s cubic-bezier(.16,1,.3,1);
+  display: flex; align-items: center; justify-content: flex-end; padding-left: 10px;
+}
+.bar-fill-label { font-size: 11px; font-weight: 600; color: white; }
+.bar-val { width: 72px; font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+/* ===== LINK TRACKING ===== */
+.link-track-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+}
+.link-track-item:last-child { border-bottom: none; }
+.link-source-icon {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.lt-wa  { background: #DCFCE7; }
+.lt-fb  { background: #DBEAFE; }
+.lt-ig  { background: #FCE7F3; }
+.lt-dir { background: var(--off); }
+.link-source-name { font-size: 13px; font-weight: 600; }
+.link-source-time { font-size: 11px; color: var(--muted); }
+.link-prog-wrap { flex: 1; }
+.link-prog-bg  { height: 6px; background: var(--off); border-radius: 3px; margin-top: 4px; overflow: hidden; }
+.link-prog-fill{ height: 100%; background: var(--teal); border-radius: 3px; }
+.link-count { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; color: var(--navy); margin-right: auto; }
+
+/* ===== SQL CODE ===== */
+.sql-block {
+  background: var(--navy);
+  border-radius: var(--radius);
+  padding: 20px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  line-height: 1.8;
+  color: #9ECFFF;
+  overflow-x: auto;
+  white-space: pre;
+  position: relative;
+}
+.sql-block .sql-kw { color: #F0883E; }
+.sql-block .sql-str { color: #A5D6FF; }
+.sql-block .sql-cmt { color: #6E7F8D; }
+.sql-block .sql-fn { color: #D2A8FF; }
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--navy);
+  color: white;
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 500;
+  box-shadow: 0 8px 30px rgba(10,37,64,.3);
+  z-index: 999;
+  opacity: 0;
+  transition: all .25s cubic-bezier(.16,1,.3,1);
+  pointer-events: none;
+  display: flex; align-items: center; gap: 10px;
+  border-right: 3px solid var(--teal);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===== EXPIRY WARN ===== */
+.expiry-warn { color: var(--warn); font-size: 11.5px; display: flex; align-items: center; gap: 4px; }
+
+/* ===== INFO ROW ===== */
+.info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.info-card { background: var(--off); border-radius: 8px; padding: 16px 18px; }
+.info-card-label { font-size: 11px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+.info-card-val { font-size: 22px; font-weight: 700; color: var(--navy); font-family: 'DM Sans', sans-serif; }
+.info-card-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 960px) {
+  .metrics-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 700px) {
+  :root { --sidebar: 0px; }
+  .sidebar { display: none; }
+  .main { margin-right: 0; }
+  .metrics-grid { grid-template-columns: 1fr 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+  .content { padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark"><div class="logo-cross"></div></div>
+    <div class="logo-text">PharmSys</div>
+    <div class="logo-sub">نظام إدارة الصيدليات</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-item active" onclick="switchPanel('pharmacies', this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      الصيدليات
+      <span class="nav-badge" id="nb-total">5</span>
+    </div>
+    <div class="nav-item" onclick="switchPanel('revenue', this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l4-4 4 4 4-8 4 4"/><path d="M21 21H3"/></svg>
+      الإيرادات
+    </div>
+    <div class="nav-item" onclick="switchPanel('links', this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+      تتبع الروابط
+    </div>
+    <div class="nav-item" onclick="switchPanel('sql', this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      كود Supabase
+    </div>
+  </nav>
+  <div class="sidebar-footer">الإصدار 1.0.0 — نظام الاشتراكات</div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <span class="topbar-title" id="topbar-title">الصيدليات المسجلة</span>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" onclick="showToast('⚙ الإعدادات قريباً')">إعدادات</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal()">+ إضافة صيدلية</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- METRICS -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">إجمالي الصيدليات</div>
+        <div class="metric-val" id="m-total">5</div>
+        <div class="metric-sub">مسجلة في النظام</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">اشتراكات نشطة</div>
+        <div class="metric-val teal" id="m-active">3</div>
+        <div class="metric-sub">تجديدية شهرياً</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">إيرادات الشهر</div>
+        <div class="metric-val" id="m-rev">2,500</div>
+        <div class="metric-sub">جنيه مصري</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">زيارات الروابط</div>
+        <div class="metric-val warn" id="m-visits">148</div>
+        <div class="metric-sub">هذا الشهر</div>
+      </div>
+    </div>
+
+    <!-- PHARMACIES PANEL -->
+    <div class="panel active" id="panel-pharmacies">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">الصيدليات</span>
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV()">تصدير CSV</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>الصيدلية</th>
+              <th>نوع الاشتراك</th>
+              <th>الحالة</th>
+              <th>تاريخ الانتهاء</th>
+              <th>كود التفعيل</th>
+              <th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="pharm-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REVENUE PANEL -->
+    <div class="panel" id="panel-revenue">
+      <div class="info-grid" style="margin-bottom:20px;">
+        <div class="info-card">
+          <div class="info-card-label">اشتراكات شهرية</div>
+          <div class="info-card-val" id="r-monthly">1,500</div>
+          <div class="info-card-sub">جنيه / الشهر</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-label">اشتراكات سنوية</div>
+          <div class="info-card-val" id="r-yearly">250</div>
+          <div class="info-card-sub">جنيه / الشهر (مقسوم)</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-label">دفعات فورية</div>
+          <div class="info-card-val" id="r-once">4,500</div>
+          <div class="info-card-sub">جنيه (إجمالي)</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">نمو الإيرادات — آخر 6 شهور</span></div>
+        <div class="card-body">
+          <div class="bar-chart" id="rev-chart"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LINKS PANEL -->
+    <div class="panel" id="panel-links">
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">
+          <span class="card-title">رابط التسويق</span>
+          <button class="btn btn-ghost btn-sm" onclick="copyLink()">نسخ الرابط</button>
+        </div>
+        <div class="card-body" style="padding:14px 22px;">
+          <div style="background:var(--off); border:1px solid var(--border); border-radius:7px; padding:10px 14px; font-family:'DM Mono',monospace; font-size:12px; color:var(--muted); letter-spacing:.3px;">
+            https://pharmsys.app/demo?ref=<span style="color:var(--teal-d); font-weight:500;">omar-nasha</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">مصادر الزيارات</span><span style="font-size:12px;color:var(--muted)">148 زيارة هذا الشهر</span></div>
+        <div class="card-body" style="padding:16px 22px;">
+          <div id="links-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SQL PANEL -->
+    <div class="panel" id="panel-sql">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">SQL — الصق في Supabase → SQL Editor</span>
+          <button class="btn btn-primary btn-sm" onclick="copySQL()">نسخ الكود كامل</button>
+        </div>
+        <div style="padding:16px;">
+          <pre class="sql-block" id="sql-pre"></pre>
+        </div>
+      </div>
+    </div>
+  </div><!-- /content -->
+</main>
+
+<!-- ADD MODAL -->
+<div class="overlay" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>إضافة صيدلية جديدة</h2>
+      <p>سيتم توليد كود التفعيل تلقائياً</p>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">اسم الصيدلية</label>
+          <input type="text" id="f-name" placeholder="صيدلية النور">
+        </div>
+        <div class="form-group">
+          <label class="form-label">اسم المالك</label>
+          <input type="text" id="f-owner" placeholder="محمد أحمد">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">رقم الهاتف</label>
+          <input type="text" id="f-phone" placeholder="010XXXXXXXX">
+        </div>
+        <div class="form-group">
+          <label class="form-label">نوع الاشتراك</label>
+          <select id="f-plan" onchange="planChanged()">
+            <option value="monthly">شهري — 400 جنيه</option>
+            <option value="yearly">سنوي — 3,000 جنيه</option>
+            <option value="onetime">دفعة واحدة — 4,500 جنيه</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">السعر المدفوع (جنيه)</label>
+          <input type="number" id="f-price" value="400">
+        </div>
+        <div class="form-group">
+          <label class="form-label">تاريخ انتهاء الاشتراك</label>
+          <input type="date" id="f-end">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:4px;">
+        <label class="form-label">كود التفعيل</label>
+        <div class="key-gen-wrap">
+          <input type="text" id="f-key" readonly style="padding-left:70px;">
+          <button class="key-gen-btn" onclick="regenKey()">↻ جديد</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="addPharmacy()">إضافة الصيدلية ←</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== DATA ===== */
+const PLANS = {
+  monthly:  { label: 'شهري',        price: 400,  days: 30  },
+  yearly:   { label: 'سنوي',        price: 3000, days: 365 },
+  onetime:  { label: 'دفعة واحدة', price: 4500, days: null }
+};
+
+let pharmacies = [
+  { id:1, name:'صيدلية النور',    owner:'محمد أحمد',  phone:'01001234567', plan:'monthly', status:'active',  key:'ABCD-EFGH-1234-WXYZ', end:'2025-07-22', price:400  },
+  { id:2, name:'صيدلية الشفاء',   owner:'أحمد علي',   phone:'01112345678', plan:'yearly',  status:'active',  key:'MNOP-QRST-5678-IJKL', end:'2026-01-15', price:3000 },
+  { id:3, name:'صيدلية الحياة',   owner:'سارة محمود', phone:'01223456789', plan:'onetime', status:'active',  key:'UVWX-YZ12-3456-ABCD', end:null,         price:4500 },
+  { id:4, name:'صيدلية السلامة',  owner:'علي حسن',    phone:'01334567890', plan:'monthly', status:'expired', key:'GHIJ-KLMN-7890-EFGH', end:'2025-05-01', price:400  },
+  { id:5, name:'صيدلية الرعاية',  owner:'فاطمة خالد', phone:'01445678901', plan:'monthly', status:'trial',   key:'PQRS-TUVW-2345-MNOP', end:'2025-06-30', price:0    },
+];
+
+const REV_DATA = [
+  {m:'يناير',v:800}, {m:'فبراير',v:1200}, {m:'مارس',v:1600},
+  {m:'أبريل',v:2000},{m:'مايو',v:2200},   {m:'يونيو',v:2500}
+];
+
+const LINKS_DATA = [
+  { source:'واتساب', icon:'💬', cls:'lt-wa',  visits:68, last:'منذ ساعة'   },
+  { source:'فيسبوك', icon:'👥', cls:'lt-fb',  visits:45, last:'منذ 3 ساعات'},
+  { source:'مباشر',  icon:'🌐', cls:'lt-dir', visits:22, last:'منذ يوم'    },
+  { source:'انستغرام',icon:'📸',cls:'lt-ig',  visits:13, last:'منذ يومين'  },
+];
+
+/* ===== KEY GEN ===== */
+function genKey() {
+  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let r = '';
+  for (let g = 0; g < 4; g++) {
+    for (let i = 0; i < 4; i++) r += c[Math.floor(Math.random() * c.length)];
+    if (g < 3) r += '-';
+  }
+  return r;
+}
+
+/* ===== RENDER PHARMACIES ===== */
+function renderPharmacies() {
+  const tbody = document.getElementById('pharm-tbody');
+  const statusLabel = { active:'نشط', expired:'منتهي', trial:'تجريبي' };
+  tbody.innerHTML = pharmacies.map(p => {
+    const endStr = p.end
+      ? (new Date(p.end) < new Date()
+          ? `<span class="expiry-warn">⚠ ${p.end}</span>`
+          : `<span style="font-size:13px">${p.end}</span>`)
+      : `<span style="color:var(--teal-d);font-size:12px;font-weight:600;">مدى الحياة</span>`;
+    return `<tr>
+      <td>
+        <div style="font-weight:600;font-size:14px">${p.name}</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:2px">${p.owner} • ${p.phone}</div>
+      </td>
+      <td><span class="plan-badge plan-${p.plan}">${PLANS[p.plan].label}</span></td>
+      <td><span class="badge badge-${p.status}">${statusLabel[p.status]}</span></td>
+      <td>${endStr}</td>
+      <td><span class="license-key" onclick="copyKey('${p.key}')" title="اضغط للنسخ">${p.key}</span></td>
+      <td>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${p.status !== 'active'
+            ? `<button class="btn btn-ghost btn-sm" onclick="renewPh(${p.id})">تجديد</button>` : ''}
+          ${p.status === 'active'
+            ? `<button class="btn btn-danger btn-sm" onclick="suspendPh(${p.id})">إيقاف</button>` : ''}
+          <button class="btn btn-ghost btn-sm" onclick="copyKey('${p.key}')">نسخ الكود</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // metrics
+  const active = pharmacies.filter(p => p.status === 'active').length;
+  const rev = pharmacies.filter(p => p.status === 'active' && p.plan === 'monthly').reduce((a,p)=>a+p.price,0);
+  document.getElementById('m-total').textContent = pharmacies.length;
+  document.getElementById('m-active').textContent = active;
+  document.getElementById('m-rev').textContent = rev.toLocaleString('ar-EG');
+  document.getElementById('nb-total').textContent = pharmacies.length;
+
+  // revenue breakdown
+  const monthly_rev = pharmacies.filter(p=>p.status==='active'&&p.plan==='monthly').reduce((a,p)=>a+p.price,0);
+  const yearly_ph = pharmacies.filter(p=>p.status==='active'&&p.plan==='yearly');
+  const yearly_monthly = yearly_ph.reduce((a,p)=>a+Math.round(p.price/12),0);
+  const once = pharmacies.filter(p=>p.plan==='onetime').reduce((a,p)=>a+p.price,0);
+  document.getElementById('r-monthly').textContent = monthly_rev.toLocaleString('ar-EG');
+  document.getElementById('r-yearly').textContent = yearly_monthly.toLocaleString('ar-EG');
+  document.getElementById('r-once').textContent = once.toLocaleString('ar-EG');
+}
+
+/* ===== RENDER REVENUE CHART ===== */
+function renderRevChart() {
+  const max = Math.max(...REV_DATA.map(r=>r.v));
+  document.getElementById('rev-chart').innerHTML = REV_DATA.map(r => {
+    const pct = Math.round(r.v / max * 100);
+    return `<div class="bar-row">
+      <span class="bar-month">${r.m}</span>
+      <div class="bar-bg">
+        <div class="bar-fill" style="width:${pct}%">
+          ${pct > 30 ? `<span class="bar-fill-label">${r.v.toLocaleString('ar-EG')} ج</span>` : ''}
+        </div>
+      </div>
+      <span class="bar-val">${pct <= 30 ? r.v.toLocaleString('ar-EG')+' ج' : ''}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ===== RENDER LINKS ===== */
+function renderLinks() {
+  const total = LINKS_DATA.reduce((a,l)=>a+l.visits,0);
+  document.getElementById('links-list').innerHTML = LINKS_DATA.map(l => {
+    const pct = Math.round(l.visits/total*100);
+    return `<div class="link-track-item">
+      <div class="link-source-icon ${l.cls}">${l.icon}</div>
+      <div class="link-prog-wrap">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="link-source-name">${l.source}</span>
+          <span class="link-source-time">${l.last}</span>
+        </div>
+        <div class="link-prog-bg"><div class="link-prog-fill" style="width:${pct}%"></div></div>
+      </div>
+      <span class="link-count">${l.visits}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ===== SQL TEXT ===== */
+const SQL_TEXT = `-- ╔══════════════════════════════════════════════╗
+-- ║    PharmSys — Supabase Schema v1.0           ║
+-- ║    الصق هذا الكود في SQL Editor              ║
+-- ╚══════════════════════════════════════════════╝
+
+-- 1. جدول الصيدليات والاشتراكات
+CREATE TABLE pharmacies (
+  id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name        TEXT NOT NULL,
+  owner_name  TEXT,
+  phone       TEXT,
+  plan        TEXT CHECK (plan IN ('monthly','yearly','onetime'))
+              DEFAULT 'monthly',
+  status      TEXT CHECK (status IN ('active','expired','trial'))
+              DEFAULT 'trial',
+  license_key TEXT UNIQUE NOT NULL,
+  price_paid  NUMERIC(10,2) DEFAULT 0,
+  start_date  DATE DEFAULT CURRENT_DATE,
+  end_date    DATE,
+  notes       TEXT,
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. جدول تتبع الروابط
+CREATE TABLE link_visits (
+  id         UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  link_id    TEXT NOT NULL DEFAULT 'main',
+  source     TEXT DEFAULT 'direct',
+  ip_hash    TEXT,
+  user_agent TEXT,
+  country    TEXT,
+  visited_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3. دالة توليد كود التفعيل
+CREATE OR REPLACE FUNCTION generate_license_key()
+RETURNS TEXT AS $$
+DECLARE
+  chars  TEXT := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  result TEXT := '';
+  i      INT;
+BEGIN
+  FOR grp IN 1..4 LOOP
+    FOR i IN 1..4 LOOP
+      result := result ||
+        substring(chars FROM
+          (floor(random()*length(chars))+1)::int FOR 1);
+    END LOOP;
+    IF grp < 4 THEN result := result || '-'; END IF;
+  END LOOP;
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 4. دالة التحقق من اللايسنس
+-- استخدمها في السيستم: SELECT * FROM verify_license('XXXX-XXXX-XXXX-XXXX');
+CREATE OR REPLACE FUNCTION verify_license(p_key TEXT)
+RETURNS JSONB AS $$
+DECLARE
+  rec pharmacies%ROWTYPE;
+BEGIN
+  SELECT * INTO rec FROM pharmacies
+  WHERE license_key = upper(trim(p_key));
+
+  IF NOT FOUND THEN
+    RETURN '{"valid":false,"reason":"key_not_found"}'::JSONB;
+  END IF;
+
+  IF rec.status = 'expired' THEN
+    RETURN '{"valid":false,"reason":"subscription_expired"}'::JSONB;
+  END IF;
+
+  -- تحقق من انتهاء تاريخ الاشتراك (شهري/سنوي فقط)
+  IF rec.plan != 'onetime' AND rec.end_date IS NOT NULL
+     AND rec.end_date < CURRENT_DATE THEN
+    UPDATE pharmacies SET status = 'expired' WHERE id = rec.id;
+    RETURN '{"valid":false,"reason":"subscription_ended"}'::JSONB;
+  END IF;
+
+  RETURN jsonb_build_object(
+    'valid',      true,
+    'pharmacy',   rec.name,
+    'owner',      rec.owner_name,
+    'plan',       rec.plan,
+    'end_date',   rec.end_date,
+    'days_left',  CASE
+                    WHEN rec.plan = 'onetime' THEN 99999
+                    ELSE (rec.end_date - CURRENT_DATE)
+                  END
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 5. تسجيل زيارة رابط
+CREATE OR REPLACE FUNCTION track_link_visit(
+  p_link_id TEXT DEFAULT 'main',
+  p_source  TEXT DEFAULT 'direct'
+)
+RETURNS VOID AS $$
+BEGIN
+  INSERT INTO link_visits (link_id, source)
+  VALUES (p_link_id, p_source);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 6. بيانات تجريبية
+INSERT INTO pharmacies
+  (name, owner_name, phone, plan, status,
+   license_key, price_paid, end_date)
+VALUES
+  ('صيدلية النور', 'محمد أحمد', '01001234567',
+   'monthly', 'active', generate_license_key(),
+   400, CURRENT_DATE + 30),
+
+  ('صيدلية الشفاء', 'أحمد علي', '01112345678',
+   'yearly', 'active', generate_license_key(),
+   3000, CURRENT_DATE + 365),
+
+  ('صيدلية الحياة', 'سارة محمود', '01223456789',
+   'onetime', 'active', generate_license_key(),
+   4500, NULL);
+
+-- 7. كود JavaScript للتحقق من اللايسنس في السيستم
+-- ضعه في أول ما السيستم بيفتح:
+--
+-- const { data } = await supabase.rpc('verify_license', {
+--   p_key: userLicenseKey
+-- });
+-- if (!data.valid) {
+--   alert('الاشتراك منتهي — تواصل مع الدعم');
+--   window.location.href = '/expired';
+-- }`;
+
+function renderSQL() {
+  document.getElementById('sql-pre').textContent = SQL_TEXT;
+}
+
+/* ===== ACTIONS ===== */
+function copyKey(k) {
+  navigator.clipboard?.writeText(k);
+  showToast('✓ تم نسخ الكود: ' + k);
+}
+function copyLink() {
+  navigator.clipboard?.writeText('https://pharmsys.app/demo?ref=omar-nasha');
+  showToast('✓ تم نسخ الرابط');
+}
+function copySQL() {
+  navigator.clipboard?.writeText(SQL_TEXT);
+  showToast('✓ تم نسخ كود SQL كامل');
+}
+function exportCSV() {
+  const rows = [['الصيدلية','المالك','الهاتف','الاشتراك','الحالة','الانتهاء','الكود']];
+  pharmacies.forEach(p => rows.push([p.name,p.owner,p.phone,PLANS[p.plan].label,p.status,p.end||'—',p.key]));
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download = 'pharmacies.csv'; a.click();
+  showToast('✓ تم تصدير الملف');
+}
+function renewPh(id) {
+  const p = pharmacies.find(x=>x.id===id); if(!p) return;
+  p.status = 'active';
+  const d = new Date();
+  d.setDate(d.getDate() + (PLANS[p.plan].days || 30));
+  p.end = d.toISOString().split('T')[0];
+  renderPharmacies();
+  showToast('✓ تم تجديد الاشتراك');
+}
+function suspendPh(id) {
+  const p = pharmacies.find(x=>x.id===id); if(!p) return;
+  p.status = 'expired';
+  renderPharmacies();
+  showToast('تم إيقاف الاشتراك');
+}
+
+/* ===== MODAL ===== */
+function openModal() {
+  document.getElementById('f-key').value = genKey();
+  planChanged();
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+function regenKey()   { document.getElementById('f-key').value = genKey(); }
+function planChanged() {
+  const plan = document.getElementById('f-plan').value;
+  document.getElementById('f-price').value = PLANS[plan].price;
+  const d = new Date();
+  if (PLANS[plan].days) {
+    d.setDate(d.getDate() + PLANS[plan].days);
+    document.getElementById('f-end').value = d.toISOString().split('T')[0];
+  } else {
+    document.getElementById('f-end').value = '';
+  }
+}
+function addPharmacy() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { showToast('⚠ اكتب اسم الصيدلية!'); return; }
+  const plan = document.getElementById('f-plan').value;
+  pharmacies.push({
+    id: Date.now(),
+    name,
+    owner: document.getElementById('f-owner').value || '—',
+    phone: document.getElementById('f-phone').value || '—',
+    plan,
+    status: 'active',
+    key: document.getElementById('f-key').value,
+    end: document.getElementById('f-end').value || null,
+    price: +document.getElementById('f-price').value
+  });
+  renderPharmacies();
+  closeModal();
+  showToast('✓ تم إضافة ' + name);
+  ['f-name','f-owner','f-phone'].forEach(id => document.getElementById(id).value = '');
+}
+
+/* ===== PANEL SWITCH ===== */
+const TITLES = {
+  pharmacies:'الصيدليات المسجلة',
+  revenue:'الإيرادات',
+  links:'تتبع الروابط',
+  sql:'كود Supabase SQL'
+};
+function switchPanel(name, el) {
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+  document.getElementById('topbar-title').textContent = TITLES[name];
+}
+
+/* ===== TOAST ===== */
+let toastTmr;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTmr);
+  toastTmr = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+/* ===== INIT ===== */
+renderPharmacies();
+renderRevChart();
+renderLinks();
+renderSQL();
+</script>
+</body>
+</html>

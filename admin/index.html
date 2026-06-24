@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — Demo Watches</title>
+  <link rel="stylesheet" href="../css/admin.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌚</text></svg>" />
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+<body>
+
+<!-- Toast -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- Sidebar overlay for mobile -->
+<div id="sidebar-overlay" onclick="closeSidebar()"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999"></div>
+
+<div class="admin-layout">
+  <!-- ── Sidebar ────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-text">⌚ DEMO WATCHES</div>
+      <div class="sidebar-logo-sub">Admin Panel</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">الرئيسية</div>
+      <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
+        <span class="nav-icon">📊</span> لوحة التحكم
+      </div>
+
+      <div class="nav-section-label">المنتجات</div>
+      <div class="nav-item" data-page="watches" onclick="showPage('watches')">
+        <span class="nav-icon">⌚</span> إدارة الساعات
+      </div>
+
+      <div class="nav-section-label">الطلبات</div>
+      <div class="nav-item" data-page="orders" onclick="showPage('orders')">
+        <span class="nav-icon">📦</span> الطلبات
+        <span class="nav-badge" id="pending-badge" style="display:none">0</span>
+      </div>
+
+      <div class="nav-section-label">الإعدادات</div>
+      <div class="nav-item" data-page="coupons" onclick="showPage('coupons')">
+        <span class="nav-icon">🎁</span> كوبونات الخصم
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="../index.html" class="logout-btn" style="margin-bottom:8px">
+        <span>🏪</span> عرض المتجر
+      </a>
+      <button class="logout-btn" onclick="logout()">
+        <span>🚪</span> تسجيل الخروج
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main ──────────────────────────────────────────── -->
+  <div class="main-content">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="menu-toggle-admin" id="menu-toggle-admin" onclick="toggleSidebar()">☰</button>
+        <div class="topbar-title" id="page-title">لوحة التحكم</div>
+      </div>
+      <div class="topbar-right">
+        <span class="admin-tag" id="admin-user-tag">Admin</span>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- ── Dashboard Page ──────────────────────────── -->
+      <div id="page-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon green">⌚</div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-watches">—</div>
+              <div class="stat-label">إجمالي الساعات</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon gold">📦</div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-orders">—</div>
+              <div class="stat-label">إجمالي الطلبات</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">✅</div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-completed">—</div>
+              <div class="stat-label">طلبات مكتملة</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon red">💰</div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-revenue">—</div>
+              <div class="stat-label">إجمالي الإيرادات</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+          <!-- Sales Chart -->
+          <div class="card">
+            <div class="card-header">
+              <h3>📈 المبيعات الشهرية</h3>
+            </div>
+            <div class="card-body">
+              <div class="chart-wrap">
+                <canvas id="sales-chart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top Products -->
+          <div class="card">
+            <div class="card-header">
+              <h3>⭐ أكثر المنتجات مبيعاً</h3>
+            </div>
+            <div class="card-body" id="top-products-list">
+              <p style="color:var(--gray);font-size:.85rem">جارٍ التحميل...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="card">
+          <div class="card-header">
+            <h3>🕐 أحدث الطلبات</h3>
+            <button class="btn btn-ghost" onclick="showPage('orders')" style="font-size:.82rem">عرض الكل</button>
+          </div>
+          <div class="card-body" style="padding:0">
+            <div class="table-wrap">
+              <table id="recent-orders-table">
+                <thead>
+                  <tr>
+                    <th>رقم الطلب</th>
+                    <th>العميل</th>
+                    <th>المبلغ</th>
+                    <th>الدفع</th>
+                    <th>الحالة</th>
+                    <th>التاريخ</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-orders-body">
+                  <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--gray)">جارٍ التحميل...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Watches Page ─────────────────────────────── -->
+      <div id="page-watches" class="hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+          <div>
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.4rem">إدارة الساعات</h2>
+            <p style="color:var(--gray);font-size:.85rem;margin-top:4px">أضف وعدّل وحذف ساعات المتجر</p>
+          </div>
+          <button class="btn btn-primary" onclick="openWatchModal()">+ إضافة ساعة جديدة</button>
+        </div>
+
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>الصورة</th>
+                    <th>الاسم</th>
+                    <th>الاسم (عربي)</th>
+                    <th>التصنيف</th>
+                    <th>السعر</th>
+                    <th>المخزون</th>
+                    <th>الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="watches-tbody">
+                  <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--gray)">جارٍ التحميل...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Orders Page ──────────────────────────────── -->
+      <div id="page-orders" class="hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+          <div>
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.4rem">إدارة الطلبات</h2>
+            <p style="color:var(--gray);font-size:.85rem;margin-top:4px">عرض وتحديث حالة الطلبات</p>
+          </div>
+          <div class="tabs" id="orders-tabs">
+            <button class="tab-btn active" data-status="all"       onclick="filterOrders('all',this)">الكل</button>
+            <button class="tab-btn"        data-status="Pending"   onclick="filterOrders('Pending',this)">قيد الانتظار</button>
+            <button class="tab-btn"        data-status="Completed" onclick="filterOrders('Completed',this)">مكتملة</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>رقم الطلب</th>
+                    <th>العميل</th>
+                    <th>الهاتف</th>
+                    <th>المدينة</th>
+                    <th>الدفع</th>
+                    <th>الإجمالي</th>
+                    <th>الحالة</th>
+                    <th>التاريخ</th>
+                    <th>إجراء</th>
+                  </tr>
+                </thead>
+                <tbody id="orders-tbody">
+                  <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--gray)">جارٍ التحميل...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Coupons Page ─────────────────────────────── -->
+      <div id="page-coupons" class="hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+          <div>
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.4rem">كوبونات الخصم</h2>
+            <p style="color:var(--gray);font-size:.85rem;margin-top:4px">إنشاء وإدارة أكواد الخصم</p>
+          </div>
+          <button class="btn btn-primary" onclick="openCouponModal()">+ إضافة كوبون</button>
+        </div>
+
+        <div id="coupons-grid" class="coupon-grid">
+          <p style="color:var(--gray)">جارٍ التحميل...</p>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main-content -->
+</div><!-- /admin-layout -->
+
+<!-- ── Watch Modal ────────────────────────────────────────── -->
+<div class="modal-overlay" id="watch-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="watch-modal-title">إضافة ساعة جديدة</h3>
+      <button class="modal-close" onclick="closeWatchModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="watch-id" />
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>الاسم (إنجليزي)</label>
+          <input type="text" id="w-name" placeholder="Royal Classic" required />
+        </div>
+        <div class="form-group">
+          <label>الاسم (عربي)</label>
+          <input type="text" id="w-name-ar" placeholder="رويال كلاسيك" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>رابط الصورة (URL)</label>
+        <input type="url" id="w-image" placeholder="https://..." oninput="previewImage(this.value)" />
+        <div class="img-preview" id="img-preview">
+          <div class="img-preview-placeholder">🖼 معاينة الصورة</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>السعر (EGP)</label>
+          <input type="number" id="w-price" placeholder="1800" min="0" required />
+        </div>
+        <div class="form-group">
+          <label>المخزون</label>
+          <input type="number" id="w-stock" placeholder="10" min="0" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>التصنيف</label>
+        <select id="w-category">
+          <option value="Men">رجالي (Men)</option>
+          <option value="Women">نسائي (Women)</option>
+          <option value="Unisex">للجنسين (Unisex)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>الوصف (إنجليزي)</label>
+        <textarea id="w-desc" placeholder="Description..." rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>الوصف (عربي)</label>
+        <textarea id="w-desc-ar" placeholder="الوصف..." rows="3"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeWatchModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveWatch()" id="save-watch-btn">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Delete Confirm Modal ───────────────────────────────── -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-body" style="text-align:center;padding:40px 32px">
+      <div style="font-size:3rem;margin-bottom:16px">🗑</div>
+      <h3 style="font-family:'Playfair Display',serif;margin-bottom:8px">تأكيد الحذف</h3>
+      <p style="color:var(--gray);margin-bottom:28px">هل أنت متأكد؟ لا يمكن التراجع عن هذا الإجراء.</p>
+      <div style="display:flex;gap:12px;justify-content:center">
+        <button class="btn btn-ghost" onclick="closeDeleteModal()">إلغاء</button>
+        <button class="btn btn-danger" id="confirm-delete-btn">حذف نهائي</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Coupon Modal ───────────────────────────────────────── -->
+<div class="modal-overlay" id="coupon-modal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h3>إضافة كوبون خصم</h3>
+      <button class="modal-close" onclick="closeCouponModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>كود الخصم</label>
+        <input type="text" id="c-code" placeholder="SUMMER20" style="text-transform:uppercase" />
+        <div class="form-hint">حروف وأرقام فقط، بدون مسافات</div>
+      </div>
+      <div class="form-group">
+        <label>قيمة الخصم (EGP)</label>
+        <input type="number" id="c-discount" placeholder="100" min="1" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeCouponModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveCoupon()">💾 إضافة</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-config.js"></script>
+<script src="../js/admin.js"></script>
+</body>
+</html>

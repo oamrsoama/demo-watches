@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login — Demo Watches</title>
+  <link rel="stylesheet" href="../css/admin.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌚</text></svg>" />
+</head>
+<body>
+
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-text">⌚ DEMO WATCHES</div>
+      <div class="login-logo-sub">Admin Panel</div>
+    </div>
+
+    <h2 class="login-title">تسجيل الدخول</h2>
+    <p class="login-sub">أدخل بيانات الدخول للوصول إلى لوحة الإدارة</p>
+
+    <div class="login-error hidden" id="login-error">❌ اسم المستخدم أو كلمة المرور غير صحيحة</div>
+
+    <form id="login-form" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label>اسم المستخدم</label>
+        <input type="text" id="username" placeholder="admin" autocomplete="username" required />
+      </div>
+      <div class="form-group">
+        <label>كلمة المرور</label>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required />
+      </div>
+      <button type="submit" class="login-btn" id="login-btn">🔐 دخول</button>
+    </form>
+
+    <div class="login-demo">
+      <strong>بيانات تجريبية:</strong><br/>
+      المستخدم: <code>admin</code> | كلمة المرور: <code>watches2024</code>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-config.js"></script>
+<script>
+  // Redirect if already logged in
+  if (localStorage.getItem('dw_admin_auth') === 'true') {
+    window.location.href = 'index.html';
+  }
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const btn      = document.getElementById('login-btn');
+    const errEl    = document.getElementById('login-error');
+
+    btn.disabled = true;
+    btn.textContent = '⏳ جارٍ التحقق...';
+    errEl.classList.add('hidden');
+
+    await new Promise(r => setTimeout(r, 600)); // subtle delay
+
+    let valid = false;
+
+    // Try Supabase first
+    if (supabaseClient) {
+      try {
+        const { data } = await supabaseClient
+          .from('admin_users')
+          .select('*')
+          .eq('username', username)
+          .single();
+        // Simple comparison (in prod: use bcrypt via edge function)
+        if (data && data.password_hash === password) valid = true;
+      } catch (_) {}
+    }
+
+    // Fallback: hardcoded credentials from config
+    if (!valid && username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+      valid = true;
+    }
+
+    if (valid) {
+      localStorage.setItem('dw_admin_auth', 'true');
+      localStorage.setItem('dw_admin_user', username);
+      window.location.href = 'index.html';
+    } else {
+      errEl.classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = '🔐 دخول';
+    }
+  }
+
+  function showToast(msg, type = 'info') {
+    const c = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.textContent = msg;
+    c.appendChild(t);
+    setTimeout(() => { t.classList.add('fade-out'); setTimeout(() => t.remove(), 350); }, 3000);
+  }
+</script>
+</body>
+</html>
