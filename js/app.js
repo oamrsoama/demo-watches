@@ -1,14 +1,65 @@
 /* ============================================================
-   DEMO WATCHES — Public Store Logic
+   DEMO WATCHES — Public Store Logic (Galaxy Theme)
    ============================================================ */
 
 // ── State ──────────────────────────────────────────────────
-let cart = JSON.parse(localStorage.getItem('dw_cart') || '[]');
-let watches = [];
+let cart        = JSON.parse(localStorage.getItem('dw_cart') || '[]');
+let watches     = [];
 let currentFilter = 'all';
-let currentLang = localStorage.getItem('dw_lang') || 'ar';
+let currentLang   = localStorage.getItem('dw_lang') || 'ar';
 let appliedCoupon = null;
-let currentOrderNum = null;
+
+// ── Carousel ───────────────────────────────────────────────
+let carouselIndex   = 0;
+let carouselTotal   = 0;
+let carouselTimer   = null;
+const CAROUSEL_DELAY = 5000;
+
+function initCarousel() {
+  const slides = document.querySelectorAll('.carousel-slide');
+  carouselTotal = slides.length;
+  if (carouselTotal < 2) return;
+  startCarouselTimer();
+}
+
+function goToSlide(idx) {
+  const slides = document.querySelectorAll('.carousel-slide');
+  const dots   = document.querySelectorAll('.dot');
+  slides.forEach(s => s.classList.remove('active'));
+  dots.forEach(d => d.classList.remove('active'));
+  carouselIndex = (idx + carouselTotal) % carouselTotal;
+  slides[carouselIndex].classList.add('active');
+  if (dots[carouselIndex]) dots[carouselIndex].classList.add('active');
+}
+
+function nextSlide() { goToSlide(carouselIndex + 1); resetCarouselTimer(); }
+function prevSlide() { goToSlide(carouselIndex - 1); resetCarouselTimer(); }
+
+function startCarouselTimer() {
+  carouselTimer = setInterval(() => goToSlide(carouselIndex + 1), CAROUSEL_DELAY);
+}
+function resetCarouselTimer() {
+  clearInterval(carouselTimer);
+  startCarouselTimer();
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft')  nextSlide();
+  if (e.key === 'ArrowRight') prevSlide();
+});
+
+// Touch swipe
+(function() {
+  let tx = 0;
+  const hero = document.querySelector('.hero');
+  if (!hero) return;
+  hero.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+  hero.addEventListener('touchend',   e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 50) { dx < 0 ? nextSlide() : prevSlide(); resetCarouselTimer(); }
+  }, { passive: true });
+})();
 
 // ── Init ───────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
@@ -17,6 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupFilterBtns();
   setupPaymentOpts();
   updateCartUI();
+  initCarousel();
 
   try {
     watches = await DB.getWatches();
@@ -25,15 +77,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   renderProducts(watches);
-  updateCategoryCounts();
 
-  // Hide loading overlay
   setTimeout(() => {
     document.getElementById('loading-overlay').classList.add('fade-out');
-  }, 800);
-
-  // Update newsletter placeholder
-  updateNewsletterPlaceholder();
+  }, 700);
 });
 
 // ── Language ───────────────────────────────────────────────
@@ -42,26 +89,21 @@ function applyLang(lang) {
   localStorage.setItem('dw_lang', lang);
   const isAr = lang === 'ar';
   document.documentElement.lang = lang;
-  document.documentElement.dir = isAr ? 'rtl' : 'ltr';
+  document.documentElement.dir  = isAr ? 'rtl' : 'ltr';
   document.getElementById('lang-toggle').textContent = isAr ? 'EN' : 'ع';
 
   document.querySelectorAll('[data-ar]').forEach(el => {
-    const text = el.getAttribute(`data-${lang}`);
-    if (text) {
-      // Check if content has HTML tags
-      if (text.includes('<')) el.innerHTML = text;
-      else el.textContent = text;
-    }
+    const txt = el.getAttribute(`data-${lang}`);
+    if (!txt) return;
+    if (txt.includes('<')) el.innerHTML = txt;
+    else el.textContent = txt;
   });
 
-  updateNewsletterPlaceholder();
-  renderProducts(watches);
-  renderCartItems();
-}
+  const emailInput = document.getElementById('newsletter-email');
+  if (emailInput) emailInput.placeholder = isAr ? 'بريدك الإلكتروني' : 'Your email address';
 
-function updateNewsletterPlaceholder() {
-  const input = document.getElementById('newsletter-email');
-  if (input) input.placeholder = currentLang === 'ar' ? 'بريدك الإلكتروني' : 'Your email address';
+  renderProducts(currentFilter === 'all' ? watches : watches.filter(w => w.category === currentFilter));
+  renderCartItems();
 }
 
 document.getElementById('lang-toggle').addEventListener('click', () => {
@@ -77,63 +119,53 @@ function closeMobileNav() {
   document.getElementById('mobile-nav').classList.remove('open');
 }
 
-// ── Filter ─────────────────────────────────────────────────
+// ── Filters ────────────────────────────────────────────────
 function setupFilterBtns() {
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentFilter = btn.dataset.filter;
-      const filtered = currentFilter === 'all' ? watches : watches.filter(w => w.category === currentFilter);
-      renderProducts(filtered);
+      const list = currentFilter === 'all' ? watches : watches.filter(w => w.category === currentFilter);
+      renderProducts(list);
     });
   });
-}
-
-function filterByCategory(cat) {
-  currentFilter = cat;
-  document.querySelectorAll('.filter-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.filter === cat);
-  });
-  const filtered = watches.filter(w => w.category === cat);
-  renderProducts(filtered);
-  document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
 }
 
 // ── Render Products ────────────────────────────────────────
 function renderProducts(list) {
   const grid = document.getElementById('products-grid');
   if (!list || list.length === 0) {
-    grid.innerHTML = `<div style="text-align:center;padding:60px;color:var(--gray);grid-column:1/-1">
-      <div style="font-size:3rem;margin-bottom:12px">⌚</div>
+    grid.innerHTML = `<div style="text-align:center;padding:80px 20px;color:var(--muted);grid-column:1/-1">
+      <div style="font-size:2.5rem;margin-bottom:12px;opacity:.3">⌚</div>
       <p>${currentLang === 'ar' ? 'لا توجد منتجات في هذا التصنيف' : 'No products in this category'}</p>
     </div>`;
     return;
   }
 
   grid.innerHTML = list.map((w, i) => {
-    const name = currentLang === 'ar' ? (w.name_ar || w.name) : w.name;
-    const desc = currentLang === 'ar' ? (w.description_ar || w.description) : w.description;
-    const catLabel = getCatLabel(w.category);
-    const inCart = cart.some(c => c.id === w.id);
-    const outOfStock = w.stock <= 0;
+    const name    = currentLang === 'ar' ? (w.name_ar || w.name) : w.name;
+    const desc    = currentLang === 'ar' ? (w.description_ar || w.description) : w.description;
+    const catLbl  = getCatLabel(w.category);
+    const inCart  = cart.some(c => c.id === w.id);
+    const noStock = w.stock <= 0;
 
     return `
-    <div class="product-card" style="animation-delay:${i * .05}s">
+    <div class="product-card fade-in" style="animation-delay:${i * .04}s">
       ${i < 3 ? `<div class="product-badge">${currentLang === 'ar' ? '⭐ الأكثر مبيعاً' : '⭐ Best Seller'}</div>` : ''}
       <div class="product-img-wrap">
         <img src="${w.image_url}" alt="${name}" loading="lazy"
-             onerror="this.src='https://via.placeholder.com/400x300/1B5E3F/D4AF37?text=Watch'" />
+             onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80'" />
       </div>
       <div class="product-info">
-        <div class="product-category">${catLabel}</div>
+        <div class="product-category">${catLbl}</div>
         <div class="product-name">${name}</div>
-        <div class="product-desc">${desc}</div>
+        <div class="product-desc">${desc || ''}</div>
         <div class="product-footer">
           <div class="product-price">${Number(w.price).toLocaleString()} <span>EGP</span></div>
-          ${outOfStock
-            ? `<button class="add-cart-btn" disabled style="background:#ccc;cursor:not-allowed" title="${currentLang === 'ar' ? 'نفدت الكمية' : 'Out of Stock'}">✕</button>`
-            : `<button class="add-cart-btn" onclick="addToCart('${w.id}')" title="${currentLang === 'ar' ? 'أضف للسلة' : 'Add to Cart'}">
+          ${noStock
+            ? `<button class="add-cart-btn" disabled title="${currentLang === 'ar' ? 'نفدت الكمية' : 'Out of Stock'}">✕</button>`
+            : `<button class="add-cart-btn" onclick="addToCart('${w.id}')" title="${currentLang === 'ar' ? 'أضف للسلة' : 'Add to cart'}">
                  ${inCart ? '✓' : '+'}
                </button>`
           }
@@ -144,100 +176,59 @@ function renderProducts(list) {
 }
 
 function getCatLabel(cat) {
-  const labels = {
-    Men:    { ar: 'رجالي',   en: 'Men' },
-    Women:  { ar: 'نسائي',   en: 'Women' },
-    Unisex: { ar: 'للجنسين', en: 'Unisex' }
-  };
-  return labels[cat]?.[currentLang] || cat;
-}
-
-function updateCategoryCounts() {
-  const counts = { Men: 0, Women: 0, Unisex: 0 };
-  watches.forEach(w => { if (counts[w.category] !== undefined) counts[w.category]++; });
-
-  const catItems = document.querySelectorAll('.cat-overlay');
-  const cats = ['Men', 'Women', 'Unisex'];
-  catItems.forEach((el, i) => {
-    const countEl = el.querySelector('.cat-count');
-    if (countEl) {
-      const n = counts[cats[i]];
-      countEl.setAttribute('data-ar', `${n} ${n === 1 ? 'ساعة' : 'ساعات'}`);
-      countEl.setAttribute('data-en', `${n} Watch${n !== 1 ? 'es' : ''}`);
-      countEl.textContent = currentLang === 'ar' ? `${n} ${n === 1 ? 'ساعة' : 'ساعات'}` : `${n} Watch${n !== 1 ? 'es' : ''}`;
-    }
-  });
+  const map = { Men: { ar:'رجالي', en:'Men' }, Women: { ar:'نسائي', en:'Women' }, Unisex: { ar:'للجنسين', en:'Unisex' } };
+  return map[cat]?.[currentLang] || cat;
 }
 
 // ── Cart ───────────────────────────────────────────────────
-function addToCart(watchId) {
-  const watch = watches.find(w => w.id === watchId);
+function addToCart(id) {
+  const watch = watches.find(w => w.id === id);
   if (!watch) return;
-
-  const existing = cart.find(c => c.id === watchId);
-  if (existing) {
-    existing.qty = Math.min(existing.qty + 1, watch.stock);
-  } else {
-    cart.push({ id: watchId, qty: 1, name: watch.name, name_ar: watch.name_ar, price: watch.price, image_url: watch.image_url });
-  }
+  const ex = cart.find(c => c.id === id);
+  if (ex) ex.qty = Math.min(ex.qty + 1, watch.stock);
+  else cart.push({ id, qty: 1, name: watch.name, name_ar: watch.name_ar, price: watch.price, image_url: watch.image_url });
 
   saveCart();
   updateCartUI();
   renderProducts(currentFilter === 'all' ? watches : watches.filter(w => w.category === currentFilter));
-
   showToast(currentLang === 'ar' ? '✅ تمت الإضافة للسلة' : '✅ Added to cart', 'success');
 
-  // Bounce badge
+  // re-pop badge animation
   const badge = document.getElementById('cart-badge');
-  badge.style.animation = 'none';
-  badge.offsetWidth; // reflow
+  badge.style.animation = 'none'; badge.offsetWidth;
   badge.style.animation = 'popIn .3s cubic-bezier(.175,.885,.32,1.275)';
 }
 
-function removeFromCart(watchId) {
-  cart = cart.filter(c => c.id !== watchId);
-  saveCart();
-  updateCartUI();
-  renderCartItems();
+function removeFromCart(id) {
+  cart = cart.filter(c => c.id !== id);
+  saveCart(); updateCartUI(); renderCartItems();
   renderProducts(currentFilter === 'all' ? watches : watches.filter(w => w.category === currentFilter));
 }
 
-function changeQty(watchId, delta) {
-  const item = cart.find(c => c.id === watchId);
+function changeQty(id, delta) {
+  const item = cart.find(c => c.id === id);
   if (!item) return;
   item.qty = Math.max(1, item.qty + delta);
-  const watch = watches.find(w => w.id === watchId);
-  if (watch) item.qty = Math.min(item.qty, watch.stock);
-  saveCart();
-  updateCartUI();
-  renderCartItems();
+  const w = watches.find(x => x.id === id);
+  if (w) item.qty = Math.min(item.qty, w.stock);
+  saveCart(); updateCartUI(); renderCartItems();
 }
 
-function saveCart() {
-  localStorage.setItem('dw_cart', JSON.stringify(cart));
-}
-
-function getCartTotal() {
-  return cart.reduce((sum, c) => sum + (c.price * c.qty), 0);
-}
+function saveCart() { localStorage.setItem('dw_cart', JSON.stringify(cart)); }
+function getCartTotal() { return cart.reduce((s, c) => s + c.price * c.qty, 0); }
 
 function updateCartUI() {
-  const total = cart.reduce((sum, c) => sum + c.qty, 0);
+  const count = cart.reduce((s, c) => s + c.qty, 0);
   const badge = document.getElementById('cart-badge');
-  if (total > 0) {
-    badge.textContent = total;
-    badge.classList.remove('hidden');
-  } else {
-    badge.classList.add('hidden');
-  }
+  badge.textContent = count;
+  badge.classList.toggle('hidden', count === 0);
   document.getElementById('cart-total-price').textContent = `${getCartTotal().toLocaleString()} EGP`;
 }
 
 function renderCartItems() {
   const container = document.getElementById('cart-items');
-  const footer = document.getElementById('cart-footer');
-
-  if (cart.length === 0) {
+  const footer    = document.getElementById('cart-footer');
+  if (!cart.length) {
     container.innerHTML = `<div class="cart-empty">
       <div class="cart-empty-icon">🛒</div>
       <p>${currentLang === 'ar' ? 'سلتك فارغة' : 'Your cart is empty'}</p>
@@ -245,21 +236,20 @@ function renderCartItems() {
     footer.style.display = 'none';
     return;
   }
-
   footer.style.display = 'block';
   container.innerHTML = cart.map(item => {
     const name = currentLang === 'ar' ? (item.name_ar || item.name) : item.name;
     return `
     <div class="cart-item">
       <img class="cart-item-img" src="${item.image_url}" alt="${name}"
-           onerror="this.src='https://via.placeholder.com/72/1B5E3F/D4AF37?text=W'" />
+           onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=72&q=60'" />
       <div class="cart-item-info">
         <div class="cart-item-name">${name}</div>
         <div class="cart-item-price">${(item.price * item.qty).toLocaleString()} EGP</div>
         <div class="cart-item-controls">
-          <button class="qty-btn" onclick="changeQty('${item.id}', -1)">−</button>
+          <button class="qty-btn" onclick="changeQty('${item.id}',-1)">−</button>
           <span class="qty-num">${item.qty}</span>
-          <button class="qty-btn" onclick="changeQty('${item.id}', 1)">+</button>
+          <button class="qty-btn" onclick="changeQty('${item.id}',1)">+</button>
           <button class="remove-item" onclick="removeFromCart('${item.id}')">
             ${currentLang === 'ar' ? 'إزالة' : 'Remove'}
           </button>
@@ -267,7 +257,6 @@ function renderCartItems() {
       </div>
     </div>`;
   }).join('');
-
   document.getElementById('cart-total-price').textContent = `${getCartTotal().toLocaleString()} EGP`;
 }
 
@@ -287,10 +276,7 @@ function closeCart() {
 
 // ── Checkout ───────────────────────────────────────────────
 function openCheckout() {
-  if (cart.length === 0) {
-    showToast(currentLang === 'ar' ? 'السلة فارغة!' : 'Cart is empty!', 'error');
-    return;
-  }
+  if (!cart.length) { showToast(currentLang === 'ar' ? 'السلة فارغة!' : 'Cart is empty!', 'error'); return; }
   closeCart();
   updateOrderSummary();
   document.getElementById('checkout-modal').classList.add('open');
@@ -302,23 +288,18 @@ function closeCheckout() {
 }
 
 function updateOrderSummary() {
-  const sub = getCartTotal();
+  const sub      = getCartTotal();
   const discount = appliedCoupon ? appliedCoupon.discount_amount : 0;
-  const total = Math.max(0, sub - discount) + SHIPPING_FEE;
-
-  document.getElementById('summary-sub').textContent = `${sub.toLocaleString()} EGP`;
+  const total    = Math.max(0, sub - discount) + SHIPPING_FEE;
+  document.getElementById('summary-sub').textContent   = `${sub.toLocaleString()} EGP`;
   document.getElementById('summary-total').textContent = `${total.toLocaleString()} EGP`;
-
-  const discountRow = document.getElementById('summary-discount-row');
+  const row = document.getElementById('summary-discount-row');
   if (discount > 0) {
-    discountRow.classList.remove('hidden');
+    row.classList.remove('hidden');
     document.getElementById('summary-discount').textContent = `-${discount} EGP`;
-  } else {
-    discountRow.classList.add('hidden');
-  }
+  } else row.classList.add('hidden');
 }
 
-// Payment options
 function setupPaymentOpts() {
   document.querySelectorAll('.payment-opt').forEach(opt => {
     opt.addEventListener('click', () => {
@@ -329,34 +310,25 @@ function setupPaymentOpts() {
   });
 }
 
-// Coupon
 async function applyCoupon() {
   const code = document.getElementById('coupon-input').value.trim();
-  const resultEl = document.getElementById('coupon-result');
+  const el   = document.getElementById('coupon-result');
   if (!code) return;
-
   try {
     const coupon = await DB.validateCoupon(code);
     if (coupon) {
       appliedCoupon = coupon;
-      resultEl.className = 'coupon-result coupon-ok';
-      resultEl.textContent = currentLang === 'ar'
-        ? `✅ تم تطبيق خصم ${coupon.discount_amount} جنيه!`
-        : `✅ Discount of ${coupon.discount_amount} EGP applied!`;
+      el.className = 'coupon-result coupon-ok';
+      el.textContent = currentLang === 'ar' ? `✅ خصم ${coupon.discount_amount} EGP` : `✅ ${coupon.discount_amount} EGP off!`;
       updateOrderSummary();
     } else {
-      resultEl.className = 'coupon-result coupon-err';
-      resultEl.textContent = currentLang === 'ar' ? '❌ كود غير صحيح' : '❌ Invalid coupon code';
-      appliedCoupon = null;
-      updateOrderSummary();
+      el.className = 'coupon-result coupon-err';
+      el.textContent = currentLang === 'ar' ? '❌ كود غير صحيح' : '❌ Invalid code';
+      appliedCoupon = null; updateOrderSummary();
     }
-  } catch (e) {
-    resultEl.className = 'coupon-result coupon-err';
-    resultEl.textContent = currentLang === 'ar' ? '❌ حدث خطأ' : '❌ Error occurred';
-  }
+  } catch { el.className = 'coupon-result coupon-err'; el.textContent = '❌ Error'; }
 }
 
-// Place Order
 async function placeOrder() {
   const name    = document.getElementById('ship-name').value.trim();
   const phone   = document.getElementById('ship-phone').value.trim();
@@ -366,8 +338,7 @@ async function placeOrder() {
   const payment = document.querySelector('input[name="payment"]:checked')?.value || 'COD';
 
   if (!name || !phone || !city || !address) {
-    showToast(currentLang === 'ar' ? 'يرجى ملء جميع الحقول' : 'Please fill all fields', 'error');
-    return;
+    showToast(currentLang === 'ar' ? 'يرجى ملء جميع الحقول' : 'Please fill all fields', 'error'); return;
   }
 
   const btn = document.getElementById('place-order-btn');
@@ -378,51 +349,31 @@ async function placeOrder() {
   const discount = appliedCoupon ? appliedCoupon.discount_amount : 0;
   const total    = Math.max(0, sub - discount) + SHIPPING_FEE;
 
-  const orderData = {
-    customer_name: name,
-    phone, country, city,
-    address,
-    payment_method: payment,
-    items: JSON.stringify(cart),
-    subtotal: sub,
-    discount,
-    shipping: SHIPPING_FEE,
-    total_price: total,
-    coupon_used: appliedCoupon?.code || null,
-    status: 'Pending'
-  };
-
   try {
-    const order = await DB.saveOrder(orderData);
-    currentOrderNum = `#DW-${String(order.id || Date.now()).slice(-6).toUpperCase()}`;
+    const order = await DB.saveOrder({
+      customer_name: name, phone, country, city, address,
+      payment_method: payment, items: JSON.stringify(cart),
+      subtotal: sub, discount, shipping: SHIPPING_FEE, total_price: total,
+      coupon_used: appliedCoupon?.code || null, status: 'Pending'
+    });
 
-    // WhatsApp message
-    const items = cart.map(c => `• ${c.name} × ${c.qty}`).join('\n');
-    const waMsg = encodeURIComponent(
-      `🛍 طلب جديد من Demo Watches\n` +
-      `━━━━━━━━━━\n${items}\n━━━━━━━━━━\n` +
-      `💰 الإجمالي: ${total} EGP\n` +
-      `💳 الدفع: ${payment}\n` +
-      `📦 العنوان: ${city}, ${country}\n` +
-      `📱 ${phone}\n` +
-      `رقم الطلب: ${currentOrderNum}`
+    const orderNum = `#DW-${String(order.id || Date.now()).slice(-6).toUpperCase()}`;
+    const items    = cart.map(c => `• ${c.name} × ${c.qty}`).join('\n');
+    const waMsg    = encodeURIComponent(
+      `🛍 طلب جديد — Demo Watches\n━━━━━━\n${items}\n━━━━━━\n💰 ${total} EGP\n💳 ${payment}\n📦 ${city}, ${country}\n📱 ${phone}\n${orderNum}`
     );
     document.getElementById('whatsapp-link').href = `https://wa.me/${WHATSAPP_NUMBER}?text=${waMsg}`;
-    document.getElementById('confirm-order-num').textContent = currentOrderNum;
+    document.getElementById('confirm-order-num').textContent = orderNum;
 
-    // Clear cart
-    cart = [];
-    saveCart();
-    updateCartUI();
-    appliedCoupon = null;
-
+    cart = []; saveCart(); updateCartUI(); appliedCoupon = null;
     closeCheckout();
     document.getElementById('confirm-modal').classList.add('open');
-
-  } catch (e) {
-    showToast(currentLang === 'ar' ? '❌ حدث خطأ، حاول مجدداً' : '❌ Error occurred, please retry', 'error');
+  } catch {
+    showToast(currentLang === 'ar' ? '❌ حدث خطأ، حاول مجدداً' : '❌ Error, please retry', 'error');
   } finally {
     btn.disabled = false;
+    btn.setAttribute('data-ar', '✅ تأكيد الطلب');
+    btn.setAttribute('data-en', '✅ Confirm Order');
     btn.textContent = currentLang === 'ar' ? '✅ تأكيد الطلب' : '✅ Confirm Order';
   }
 }
@@ -445,13 +396,10 @@ function handleNewsletter(e) {
 
 // ── Toast ──────────────────────────────────────────────────
 function showToast(msg, type = 'info') {
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.textContent = msg;
-  container.appendChild(toast);
-  setTimeout(() => {
-    toast.classList.add('fade-out');
-    setTimeout(() => toast.remove(), 350);
-  }, 3000);
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.classList.add('fade-out'); setTimeout(() => t.remove(), 350); }, 3000);
 }

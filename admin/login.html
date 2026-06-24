@@ -9,15 +9,18 @@
 </head>
 <body>
 
+<div class="toast-container" id="toast-container"></div>
+
 <div class="login-page">
   <div class="login-card">
     <div class="login-logo">
-      <div class="login-logo-text">⌚ DEMO WATCHES</div>
+      <div class="login-logo-icon">⌚</div>
+      <div class="login-logo-text">DEMO WATCHES</div>
       <div class="login-logo-sub">Admin Panel</div>
     </div>
 
     <h2 class="login-title">تسجيل الدخول</h2>
-    <p class="login-sub">أدخل بيانات الدخول للوصول إلى لوحة الإدارة</p>
+    <p class="login-sub">أدخل بياناتك للوصول إلى لوحة الإدارة</p>
 
     <div class="login-error hidden" id="login-error">❌ اسم المستخدم أو كلمة المرور غير صحيحة</div>
 
@@ -35,18 +38,14 @@
 
     <div class="login-demo">
       <strong>بيانات تجريبية:</strong><br/>
-      المستخدم: <code>admin</code> | كلمة المرور: <code>watches2024</code>
+      المستخدم: <code>admin</code> &nbsp;|&nbsp; كلمة المرور: <code>watches2024</code>
     </div>
   </div>
 </div>
 
-<!-- Toast -->
-<div class="toast-container" id="toast-container"></div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase-config.js"></script>
 <script>
-  // Redirect if already logged in
   if (localStorage.getItem('dw_admin_auth') === 'true') {
     window.location.href = 'index.html';
   }
@@ -58,31 +57,19 @@
     const btn      = document.getElementById('login-btn');
     const errEl    = document.getElementById('login-error');
 
-    btn.disabled = true;
-    btn.textContent = '⏳ جارٍ التحقق...';
+    btn.disabled = true; btn.textContent = '⏳ جارٍ التحقق...';
     errEl.classList.add('hidden');
 
-    await new Promise(r => setTimeout(r, 600)); // subtle delay
+    await new Promise(r => setTimeout(r, 500));
 
     let valid = false;
-
-    // Try Supabase first
     if (supabaseClient) {
       try {
-        const { data } = await supabaseClient
-          .from('admin_users')
-          .select('*')
-          .eq('username', username)
-          .single();
-        // Simple comparison (in prod: use bcrypt via edge function)
+        const { data } = await supabaseClient.from('admin_users').select('*').eq('username', username).single();
         if (data && data.password_hash === password) valid = true;
       } catch (_) {}
     }
-
-    // Fallback: hardcoded credentials from config
-    if (!valid && username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-      valid = true;
-    }
+    if (!valid && username === ADMIN_USERNAME && password === ADMIN_PASSWORD) valid = true;
 
     if (valid) {
       localStorage.setItem('dw_admin_auth', 'true');
@@ -90,18 +77,8 @@
       window.location.href = 'index.html';
     } else {
       errEl.classList.remove('hidden');
-      btn.disabled = false;
-      btn.textContent = '🔐 دخول';
+      btn.disabled = false; btn.textContent = '🔐 دخول';
     }
-  }
-
-  function showToast(msg, type = 'info') {
-    const c = document.getElementById('toast-container');
-    const t = document.createElement('div');
-    t.className = `toast ${type}`;
-    t.textContent = msg;
-    c.appendChild(t);
-    setTimeout(() => { t.classList.add('fade-out'); setTimeout(() => t.remove(), 350); }, 3000);
   }
 </script>
 </body>
